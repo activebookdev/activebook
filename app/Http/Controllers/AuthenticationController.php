@@ -60,7 +60,7 @@ class AuthenticationController extends Controller
 
                     if (isset($email_auth) && $email_auth != null) {
                         //send a verification email
-                        $client = new PostmarkClient(env('postmark.clientkey', ''));
+                        $client = new PostmarkClient(env('POSTMARK_CLIENTKEY', ''));
 
                         $sendResult = $client->sendEmail(
                           "accounts@activebook.com.au",
