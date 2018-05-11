@@ -88,6 +88,7 @@ class AuthenticationController extends Controller
                                     ['emails_active', 1]
                                 ])
                                 ->first();
+            dd($verification);
             if (count($verification) == 1) {
                 if (Hash::make($verification->emails_email) == $email) {
                     $user = DB::table('users')
