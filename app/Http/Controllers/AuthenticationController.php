@@ -66,7 +66,7 @@ class AuthenticationController extends Controller
                           "accounts@activebook.com.au",
                           $email,
                           "Welcome to your new Active Book account!",
-                          "Congratulations ".$fname." ".$lname." for making your first step towards your fitness and health dreams! Click on the link to verify your email address: ".env('app.url', 'http://localhost')."/verify/".Hash::make($email)."/".$token
+                          "Congratulations ".$fname." ".$lname." for making your first step towards your fitness and health dreams! Click on the link to verify your email address: ".env('APP_URL', 'http://localhost')."/verify/".Hash::make($email)."/".$token
                         );
 
                         //TODO: INTERPRET AND USE sendResult
