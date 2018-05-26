@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700">
     <!-- CSS Global Compulsory -->
     <link rel="stylesheet" href="{{asset('js/bootstrap/bootstrap.min.css')}}">
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">-->
     <!-- CSS Global Icons -->
     <link rel="stylesheet" href="{{asset('css/icon-awesome/css/font-awesome.min.css')}}">
     <link rel="stylesheet" href="{{asset('css/icon-line/css/simple-line-icons.css')}}">
@@ -44,6 +45,12 @@
         }
         .active_name {
             font-size:25px;
+        }
+        .footer_bar {
+            position: fixed; 
+            bottom: 0;
+            left: 0;
+            right: 0;
         }
     </style>
 
@@ -77,7 +84,7 @@
             @yield('content')
 
             <!-- Copyright Footer -->
-            <footer class="g-bg-gray-dark-v1 g-color-white-opacity-0_8 g-py-20">
+            <footer class="g-bg-gray-dark-v1 g-color-white-opacity-0_8 g-py-20 footer_bar">
               <div class="container">
                 <div class="row">
                   <div class="col-md-8 text-center text-md-left g-mb-10 g-mb-0--md">
@@ -121,75 +128,6 @@
         </main>
         <div class="u-outer-spaces-helper"></div>
     </div>
-
-    <!-- Scripts -->
-    <!-- JS Global Compulsory -->
-    <script src="{{asset('js/jquery/jquery.min.js')}}"></script>
-    <script src="{{asset('js/jquery-migrate/jquery-migrate.min.js')}}"></script>
-    <script src="{{asset('js/popper.min.js')}}"></script>
-    <script src="{{asset('js/bootstrap/bootstrap.min.js')}}"></script>
-
-    <!-- JS Implementing Plugins -->
-    <script src="{{asset('js/appear.js')}}"></script>
-    <script src="{{asset('js/hs-megamenu/src/hs.megamenu.js')}}"></script>
-    <script src="{{asset('js/circles/circles.min.js')}}"></script>
-    <script src="{{asset('js/malihu-scrollbar/jquery.mCustomScrollbar.concat.min.js')}}"></script>
-
-    <!-- JS Unify -->
-    <script src="{{asset('js/hs.core.js')}}"></script>
-    <script src="{{asset('js/helpers/hs.hamburgers.js')}}"></script>
-    <script src="{{asset('js/components/hs.header.js')}}"></script>
-    <script src="{{asset('js/components/hs.tabs.js')}}"></script>
-    <script src="{{asset('js/components/hs.progress-bar.js')}}"></script>
-    <script src="{{asset('js/components/hs.scrollbar.js')}}"></script>
-    <script src="{{asset('js/components/hs.chart-pie.js')}}"></script>
-    <script src="{{asset('js/components/hs.go-to.js')}}"></script>
-
-    <!-- JS Customization -->
-    <script src="{{asset('js/custom.js')}}"></script>
-    <!-- <script src="jquery-3.3.1.min.js"></script> -->
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.js"></script>
-
-    <!-- JS Plugins Init. -->
-    <script>
-        $(document).on('ready', function () {
-
-            $(document).on({
-                mouseenter: function (e) {
-                    e.preventDefault();
-                    var html = $(this).html();
-                    $(this).html("<b>"+html+"</b>");
-                    //$(this).attr('style', 'font-size:18px; color:white; cursor:pointer;');
-                },
-                mouseleave: function (e) {
-                    e.preventDefault();
-                    var html = $(this).html().substring(3, $(this).html().length - 4);
-                    $(this).html(html);
-                    //$(this).attr('style', 'font-size:18px; color:white; cursor:pointer;');
-                }
-            }, "#login_button, #logout_button, #register_button");
-
-            $(document).on('click', '#logout_button', function(e) {
-                //we need to log the user out
-                $.ajax({
-                    method: 'POST',
-                    url: '/submit_logout',
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(data){
-                        data = JSON.parse(data);
-                        window.location.href = '/login'; //CHANGE ONCE HOME PAGE IS MADE
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        console.log(JSON.stringify(jqXHR));
-                        console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
-                    }
-                });
-            });
-
-        });
-    </script>
 
     @yield('scripts')
 </body>

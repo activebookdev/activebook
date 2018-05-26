@@ -1,66 +1,76 @@
-<!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}">
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('layouts.activebookhome')
 
-    <!-- CSRF Token -->
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>{{ config('app.name', 'Laravel') }}</title>
-
-    <!-- Styles -->
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="{{asset('js/bootstrap/bootstrap.min.css')}}">
-</head>
-<body>
-    <main class="py-4">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="card">
-                        <div class="card-header">Login</div>
-                        <div class="card-body">
-                            <form id="login_form">
-                                <div class="form-group row">
-                                    <label for="email" class="col-md-4 col-form-label text-md-right">E-Mail Address</label>
-                                    <div class="col-md-6">
-                                        <input id="email" type="email" class="form-control" name="email" required>
-                                    </div>
+@section('content')
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">Login</div>
+                    <div class="card-body">
+                        <form id="login_form">
+                            <div class="form-group row">
+                                <label for="email" class="col-md-4 col-form-label text-md-right">E-Mail Address</label>
+                                <div class="col-md-6">
+                                    <input id="email" type="email" class="form-control" name="email" required>
                                 </div>
+                            </div>
 
-                                <div class="form-group row">
-                                    <label for="password" class="col-md-4 col-form-label text-md-right">Password</label>
-                                    <div class="col-md-6">
-                                        <input id="password" type="password" class="form-control" name="password" required>
-                                    </div>
+                            <div class="form-group row">
+                                <label for="password" class="col-md-4 col-form-label text-md-right">Password</label>
+                                <div class="col-md-6">
+                                    <input id="password" type="password" class="form-control" name="password" required>
                                 </div>
+                            </div>
 
-                                <div class="form-group row mb-0">
-                                    <div class="col-md-6 offset-md-4">
-                                        <button type="submit" class="btn btn-primary">Login</button>
-                                    </div>
+                            <div class="form-group row mb-0">
+                                <div class="col-md-6 offset-md-4">
+                                    <button type="submit" class="btn btn-primary">Login</button>
                                 </div>
-                            </form>
-                        </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
+@endsection
 
+@section('style')
     <!-- Scripts -->
+    <!-- JS Global Compulsory -->
     <script src="{{asset('js/jquery/jquery.min.js')}}"></script>
     <script src="{{asset('js/jquery-migrate/jquery-migrate.min.js')}}"></script>
     <script src="{{asset('js/popper.min.js')}}"></script>
     <script src="{{asset('js/bootstrap/bootstrap.min.js')}}"></script>
+    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>-->
     <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+    <!-- JS Implementing Plugins -->
+    <script src="{{asset('js/appear.js')}}"></script>
+    <script src="{{asset('js/hs-megamenu/src/hs.megamenu.js')}}"></script>
+    <script src="{{asset('js/circles/circles.min.js')}}"></script>
+    <script src="{{asset('js/malihu-scrollbar/jquery.mCustomScrollbar.concat.min.js')}}"></script>
+
+    <!-- JS Unify -->
+    <script src="{{asset('js/hs.core.js')}}"></script>
+    <script src="{{asset('js/helpers/hs.hamburgers.js')}}"></script>
+    <script src="{{asset('js/components/hs.header.js')}}"></script>
+    <script src="{{asset('js/components/hs.tabs.js')}}"></script>
+    <script src="{{asset('js/components/hs.progress-bar.js')}}"></script>
+    <script src="{{asset('js/components/hs.scrollbar.js')}}"></script>
+    <script src="{{asset('js/components/hs.chart-pie.js')}}"></script>
+    <script src="{{asset('js/components/hs.go-to.js')}}"></script>
+
+    <!-- JS Customization -->
+    <script src="{{asset('js/custom.js')}}"></script>
+    <!-- <script src="jquery-3.3.1.min.js"></script> -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.js"></script>
 
     <script>
         $(document).on('ready', function () {
 
             $(document).on('submit', '#login_form', function(e) {
+                console.log('xd');
                 e.preventDefault();
 
                 var message = 'Please fix the following and try again:';
@@ -113,5 +123,4 @@
             });
         });
     </script>
-</body>
-</html>
+@endsection

@@ -46,6 +46,12 @@
         .active_name {
             font-size:25px;
         }
+        .footer_bar {
+            position: fixed; 
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
     </style>
 
     @yield('style')
@@ -219,7 +225,7 @@
             <!-- End Footer -->
 
             <!-- Copyright Footer -->
-            <footer class="g-bg-gray-dark-v1 g-color-white-opacity-0_8 g-py-20">
+            <footer class="g-bg-gray-dark-v1 g-color-white-opacity-0_8 g-py-20 footer_bar">
               <div class="container">
                 <div class="row">
                   <div class="col-md-8 text-center text-md-left g-mb-10 g-mb-0--md">
