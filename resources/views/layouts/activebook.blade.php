@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700">
     <!-- CSS Global Compulsory -->
     <link rel="stylesheet" href="{{asset('js/bootstrap/bootstrap.min.css')}}">
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">-->
     <!-- CSS Global Icons -->
     <link rel="stylesheet" href="{{asset('css/icon-awesome/css/font-awesome.min.css')}}">
     <link rel="stylesheet" href="{{asset('css/icon-line/css/simple-line-icons.css')}}">
@@ -304,6 +305,8 @@
     <script src="{{asset('js/jquery-migrate/jquery-migrate.min.js')}}"></script>
     <script src="{{asset('js/popper.min.js')}}"></script>
     <script src="{{asset('js/bootstrap/bootstrap.min.js')}}"></script>
+    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>-->
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
     <!-- JS Implementing Plugins -->
     <script src="{{asset('js/appear.js')}}"></script>

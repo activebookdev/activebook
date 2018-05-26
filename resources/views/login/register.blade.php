@@ -69,7 +69,7 @@
     <script src="{{asset('js/jquery-migrate/jquery-migrate.min.js')}}"></script>
     <script src="{{asset('js/popper.min.js')}}"></script>
     <script src="{{asset('js/bootstrap/bootstrap.min.js')}}"></script>
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <script src="https://unpkg.com/sweetalert2@7.20.10/dist/sweetalert2.all.js"></script>
 
     <script>
         $(document).on('ready', function () {
@@ -77,7 +77,7 @@
             $(document).on('submit', '#register_form', function(e) {
                 e.preventDefault();
 
-                var message = 'Please fix the following and try again';
+                var message = 'Please fix the following and try again:';
                 var pass = [0, 0, 0, 0];
                 if ($('#name').val().length > 0 && $('#name').val().indexOf(' ') > -1) {
                     pass[0] = 1;
@@ -114,8 +114,22 @@
                             data = JSON.parse(data);
                             if (data['status'] == 'success') {
                                 window.location.href = '/login';
+                                //swal('', "You have successfully created an account! Please check your email and click the link we've sent you to verify your account.", 'success');
+                            } else if (data['status'] == 'exists') {
+                                var verified = data['verified'];
+                                var initials = data['initials'];
+                                if (verified == 1 && initials == 'unknown') {
+                                    swal('', 'This email address has already been verified for an unknown account. Please contact our support team and we will help solve this issue and set up your account.' , 'warning');
+                                } else if (verified == 1) {
+                                    swal('', 'This email address has already been verified by an existing user with initials '+initials+'. If this is you, then please try to login to your existing account. Otherwise, please contact our support team and we will help solve this issue and set up your account.' , 'warning');
+                                } else if (initials == 'unknown') {
+                                    swal('', 'Another unknown user has recently attempted to claim this email address, but has not yet verified their ownership. If this was you, then please check your emails and click the verification link to use your original account. Otherwise, please contact our support team and we will help solve this issue and set up your account.' , 'warning');
+                                } else {
+                                    swal('', 'Another user with initials '+initials+' has recently attempted to claim this email address, but has not yet verified their ownership. If this was you, then please check your emails and click the verification link to use your original account. Otherwise, please contact our support team and we will help solve this issue and set up your account.', 'warning');
+                                }
+                            } else {
+                                swal('', 'There was a system error. Please reload the page and try again.', 'error');
                             }
-                            //swal('', 'You have successfully created an account!', 'success');
                         },
                         error: function(jqXHR, textStatus, errorThrown) {
                             console.log(JSON.stringify(jqXHR));

@@ -11,9 +11,14 @@
 |
 */
 
+Route::get('/', function() {
+	return view('activebook_home');
+});
+
+
 Route::get('/register', 'AuthenticationController@register');
 Route::post('/submit_register', 'AuthenticationController@submit_register');
-Route::get('/verify/{email}/{token}', 'AuthenticationController@verify');
+Route::get('/verify/{user_id}/{token}', 'AuthenticationController@verify');
 Route::get('/login', 'AuthenticationController@login');
 Route::post('/submit_login', 'AuthenticationController@submit_login');
 Route::post('/check_logged', 'AuthenticationController@check_logged');

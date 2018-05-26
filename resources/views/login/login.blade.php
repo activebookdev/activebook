@@ -90,8 +90,16 @@
                             data = JSON.parse(data);
                             if (data['status'] == 'success') {
                                 window.location.href = '/profile';
+                            } else if (data['status'] == 'new_ip') {
+                                swal('', "You have attempted to login from a location that is new to your account. Please verify your login by clicking the link we've sent to your email address, and then try again.", 'warning');
+                            } else if (data['status'] == 'inactive') {
+                                swal('', 'You have not yet verified your account. Please check for an email from ActiveBook and click the link to confirm your email address, then try to login again.', 'warning');
+                            } else if (data['status'] == 'wrong_password') {
+                                swal('', 'You have entered an incorrect password. Please try again.', 'warning');
+                            } else if (data['status'] == 'no_account') {
+                                swal('', 'An account with this email address does not exist - please register for an account and then try again.');
                             } else {
-                                swal('', 'Please enter a valid username and password.', 'danger');
+                                swal('', 'There was a system error. Please reload the page and try again.', 'error');
                             }
                         },
                         error: function(jqXHR, textStatus, errorThrown) {

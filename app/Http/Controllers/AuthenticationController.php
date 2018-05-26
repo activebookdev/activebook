@@ -20,7 +20,7 @@ class AuthenticationController extends Controller
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:200',
-            'email' => 'required|email|unique:users,users_email',
+            'email' => 'required|email', //|unique:users,users_email
             'password' => 'required|string|min:6',
             'password_confirm' => 'required|string|min:6',
         ]);
@@ -37,28 +37,52 @@ class AuthenticationController extends Controller
         if (isset($name) && !empty($name) && isset($email) && !empty($email) && isset($password) && !empty($password) && isset($password_confirm) && !empty($password_confirm) && $password == $password_confirm) {
 
             $names = explode(' ', $name);
-            if (count($names) == 2) {
+            if (!is_null($names) && count($names) == 2) {
                 $fname = $names[0];
                 $lname = $names[1];
+
+                //first, lets check that the user's email is unique in our system (can't check unique name because people can have the same name)
+                $email_check = DB::table('user_emails')
+                                ->select('emails_userid', 'emails_verified')
+                                ->where([
+                                    ['emails_email', $email],
+                                    ['emails_active', 1]
+                                ])
+                                ->first();
+                if (!is_null($email_check)) {
+                    //TODO: because of this check, when a user deletes their account, don't just set their user record to inactive, set all subrecords to inactive too
+                    //TODO: if an email verification stays unverified for > 24 hrs, then delete it from the DB (and delete the unverified user?)
+                    $user = DB::table('users')
+                                ->select('users_fname', 'users_lname')
+                                ->where([
+                                    ['users_id', $email_check->emails_userid],
+                                    ['users_active', 1]
+                                ])
+                                ->first();
+                    if (!is_null($user)) {
+                        return json_encode(['status' => 'exists', 'verified' => $email_check->emails_verified, 'initials' => substr($user->users_fname,0,1).'.'.substr($user->users_lname,0,1)]);
+                    }
+                    return json_encode(['status' => 'exists', 'verified' => $email_check->emails_verified, 'initials' => 'unknown']);
+                }
 
                 $user_id = DB::table('users')
                             ->insertGetId(['users_fname' => $fname, 'users_lname' => $lname, 'users_email' => $email, 'users_password' => Hash::make($password), 'users_type' => 0, 'users_active' => 0]); //users active = 0 means unverified, 1 means verified and active, and -1 means inactive
 
                 if (isset($user_id) && !empty($user_id)) {
                     DB::table('user_ips')
-                        ->insert(['ip_userid' => $user_id, 'ip_ip' => $request->ip()]);
+                        ->insert(['ip_userid' => $user_id, 'ip_ip' => $request->ip(), 'ip_token' => 'initial', 'ip_verified' => 0]);
 
                     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
                     $characters_length = strlen($characters);
                     $token = '';
-                    for ($i = 0; $i < 10; $i++) {
+                    for ($i = 0; $i < 30; $i++) {
                         $token .= $characters[rand(0, $characters_length - 1)];
                     }
 
                     $email_auth = DB::table('user_emails')
                                     ->insertGetId(['emails_userid' => $user_id, 'emails_email' => $email, 'emails_token' => $token, 'emails_verified' => 0, 'emails_active' => 1]);
 
-                    if (isset($email_auth) && $email_auth != null) {
+                    if (isset($email_auth) && !is_null($email_auth)) {
                         //send a verification email
                         $client = new PostmarkClient(env('POSTMARK_CLIENTKEY', ''));
 
@@ -66,7 +90,7 @@ class AuthenticationController extends Controller
                           "accounts@activebook.com.au",
                           $email,
                           "Welcome to your new Active Book account!",
-                          "Congratulations ".$fname." ".$lname." for making your first step towards your fitness and health dreams! Click on the link to verify your email address: ".env('APP_URL', 'http://localhost')."/verify/".Hash::make($email)."/".$token
+                          "Congratulations ".$fname." ".$lname." for making your first step towards your fitness and health dreams! Click on the link to verify your email address: ".env('APP_URL', 'http://localhost:8000')."/verify/".(string)$user_id."/".$token
                         );
 
                         //TODO: INTERPRET AND USE sendResult
@@ -78,38 +102,64 @@ class AuthenticationController extends Controller
         return json_encode(['status' => 'error']);
     }
 
-    public function verify(Request $request, $email=null, $token=null) {
+    public function verify(Request $request, $user_id=null, $token=null) {
+        //TODO: ADD time COLUMN TO VERIFICATION TABLE AND PUT 6HR LIMIT UNTIL THE EMAIL VERIFICATION IS CLEARED
         //if this is an open email verification token, verify it and return the success page
-        if ($email != null && $token != null) {
-            $verification = DB::table('user_emails')
+        if ($user_id != null && $token != null) {
+            $user = DB::table('users')
+                        ->where([
+                            ['users_id', $user_id],
+                            ['users_active', 0] //this account is pending email verification
+                        ])
+                        ->first();
+            if (!is_null($user)) {
+                //the user exists
+                $verification = DB::table('user_emails')
+                                    ->where([
+                                        ['emails_userid', $user_id],
+                                        ['emails_token', $token],
+                                        ['emails_verified', 0],
+                                        ['emails_active', 1]
+                                    ])
+                                    ->first();
+                if (!is_null($verification)) {
+                    //we have a match
+                    DB::table('user_emails')
+                        ->where('emails_id', $verification->emails_id)
+                        ->update(['emails_token' => null, 'emails_verified' => 1]);
+
+                    //set the user account to active
+                    DB::table('users')
+                        ->where('users_id', $user_id)
+                        ->update(['users_active' => 1]);
+
+                    //set both the initial and current ips to verified for this user
+                    $initial = DB::table('user_ips')
                                 ->where([
-                                    ['emails_token', $token],
-                                    ['emails_verified', 0],
-                                    ['emails_active', 1]
+                                    ['ip_userid', $user->users_id],
+                                    ['ip_token', 'initial'],
                                 ])
                                 ->first();
-            if (count($verification) == 1) {
-                if (Hash::make($verification->emails_email) == $email) {
-                    $user = DB::table('users')
-                                ->select('users_fname')
-                                ->where([
-                                    ['users_id', $verification->emails_userid],
-                                    ['users_active', 1]
-                                ])
-                                ->first();
-
-                    if (count($user) == 1) {
-                        //we have a match
-                        DB::table('user_emails')
-                            ->where('emails_id', $verification->emails_id)
-                            ->update(['emails_token' => null, 'emails_verified' => 1]);
-
-                        return view('login.verified', ['name' => $user->users_fname]);
+                    if (!is_null($initial)) {
+                        if ($initial->ip_ip == $request->ip()) {
+                            //this verification is coming from the original register ip, so only set this one to verified
+                            DB::table('user_ips')
+                                ->where('ip_id', $initial->ip_id)
+                                ->update(['ip_verified' => 1]);
+                        } else {
+                            //this verification is coming from a new ip so set both the original and this one to verified
+                            DB::table('user_ips')
+                                ->where('ip_id', $initial->ip_id)
+                                ->update(['ip_verified' => 1]);
+                            DB::table('user_ips')
+                                ->insert(['ip_userid' => $user->users_id, 'ip_ip' => $request->ip(), 'ip_verified' => 1]);
+                        }
                     }
+                    return view('login.verified', ['name' => $user->users_fname]);
                 }
             }
         }
-        return redirect('/login'); //TODO: MAYBE REDIRECT TO HOME PAGE INSTEAD??
+        return redirect('/');
     }
 
     public function login(Request $request) {
@@ -134,51 +184,81 @@ class AuthenticationController extends Controller
         if (isset($email) && !empty($email) && isset($password) && !empty($password)) {
 
             $user = DB::table('users')
-                        ->select('users_id', 'users_type', 'users_password')
-                        ->where([
-                            ['users_email', $email],
-                            ['users_active', 1]
-                        ])
+                        ->select('users_id', 'users_type', 'users_password', 'users_active')
+                        ->where('users_email', $email)
                         ->first();
 
             if (!empty($user)) {
                 if (Hash::check($password, $user->users_password)) {
-                    $ip = $request->ip();
-                    $ips = DB::table('user_ips')
-                            ->where('ip_userid', $user->users_id)
-                            ->get();
-                    $ip_match = false;
-                    if (count($ips) > 0) {
-                        foreach ($ips as $i) {
-                            if ($i->ip_ip == $ip) {
-                                $ip_match = true;
-                                break;
+                    //now we need to check whether the user has activated their account
+                    if ($user->users_active == 1) {
+                        $ip = $request->ip();
+                        $ips = DB::table('user_ips')
+                                ->where([
+                                    ['ip_userid', $user->users_id],
+                                    ['ip_verified', 1]
+                                ])
+                                ->get();
+                        $ip_match = false;
+                        if (!is_null($ip_match) && count($ips) > 0) {
+                            foreach ($ips as $i) {
+                                if ($i->ip_ip == $ip) {
+                                    $ip_match = true;
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    if ($ip_match == true) {
-                        //this is a valid user, coming from a valid ip address, so log them in
-                        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                        $characters_length = strlen($characters);
-                        $random_string = '';
-                        for ($i = 0; $i < 50; $i++) {
-                            $random_string .= $characters[rand(0, $characters_length - 1)];
+                        if ($ip_match == true) {
+                            //this is a valid user, coming from a valid ip address, so log them in
+                            $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                            $characters_length = strlen($characters);
+                            $random_string = '';
+                            for ($i = 0; $i < 50; $i++) {
+                                $random_string .= $characters[rand(0, $characters_length - 1)];
+                            }
+
+                            //we now have $random_string, which we will insert into both the session and the database, and our auth middleware will check session vs database on each request
+                            DB::table('users')
+                                ->where('users_id', $user->users_id)
+                                ->update(['users_sessionkey' => $random_string, 'users_sessiontime' => time()]);
+
+                            session(['id' => $user->users_id, 'ip' => $ip, 'key' => $random_string]);
+
+                            return json_encode(['status' => 'success']);
+                        } else {
+                            //TODO: notify the user that this login attempt is coming from a new computer or location, so send them an email to verify the login (email controller inserts the new ip address into the user_ips table and asks them to login again)
+                            $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                            $characters_length = strlen($characters);
+                            $random_string = '';
+                            for ($i = 0; $i < 20; $i++) {
+                                $random_string .= $characters[rand(0, $characters_length - 1)];
+                            }
+
+                            $new_ip = DB::table('user_ips')
+                                        ->insertGetId(['ip_userid' => $user->users_id, 'ip_ip' => $ip, 'ip_token' => $random_string, 'ip_verified' => 0]);
+
+                            if (isset($new_ip) && !is_null($new_ip)) {
+                                //email the user to have them verify their identity
+                                $client = new PostmarkClient(env('POSTMARK_CLIENTKEY', ''));
+
+                                $sendResult = $client->sendEmail(
+                                  "accounts@activebook.com.au",
+                                  $email,
+                                  "Login Attempt from Unknown Location",
+                                  "An attempt to log into your account was recently made from a new location. For your protection, please verify that this login is genuine by clicking the link below, and then proceed to login as normal.\n".env('APP_URL', 'http://localhost')."/authenticate/".$user->users_id."/".$random_string."\n If this wasn't you, then please either contact our support team or just ignore this email - your account is secure. Thankyou for your assistance."
+                                );
+                                return json_encode(['status' => 'new_ip']);
+                            }
                         }
-
-                        //we now have $random_string, which we will insert into both the session and the database, and our auth middleware will check session vs database on each request
-                        DB::table('users')
-                            ->where('users_id', $user->users_id)
-                            ->update(['users_sessionkey' => $random_string, 'users_sessiontime' => time()]);
-
-                        session(['id' => $user->users_id, 'ip' => $ip, 'key' => $random_string]);
-
-                        return json_encode(['status' => 'success']);
                     } else {
-                        //TODO: notify the user that this login attempt is coming from a new computer or location, so send them an email to verify the login (email controller inserts the new ip address into the user_ips table and asks them to login again)
-                        return json_encode(['status' => 'error']);
+                        return json_encode(['status' => 'inactive']);
                     }
+                } else {
+                    return json_encode(['status' => 'wrong_password']);
                 }
+            } else {
+                return json_encode(['status' => 'no_account']);
             }
         }
         return json_encode(['status' => 'error']);
