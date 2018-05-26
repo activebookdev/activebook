@@ -9,7 +9,7 @@
 @section('content')
   <section class="g-mb-100">
     <div class="container">
-      xd
+      Home page coming soon. Try registering or logging in to test the site's authentication system.
     </div>
   </section>
 @endsection
