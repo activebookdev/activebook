@@ -286,7 +286,7 @@ class AuthenticationController extends Controller
                                         ['ip_verified', 0]
                                     ])
                                     ->first();
-                if (!is_null($verification)) {
+                if (!is_null($authentication)) {
                     //we have a match, so authenticate the ip
                     DB::table('user_ips')
                         ->where('ip_id', $authentication->ip_id)
