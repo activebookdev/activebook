@@ -21,6 +21,7 @@ Route::post('/submit_register', 'AuthenticationController@submit_register');
 Route::get('/verify/{user_id}/{token}', 'AuthenticationController@verify');
 Route::get('/login', 'AuthenticationController@login');
 Route::post('/submit_login', 'AuthenticationController@submit_login');
+Route::get('/authenticate/{user_id}/{token}', 'AuthenticationController@authenticate');
 Route::post('/check_logged', 'AuthenticationController@check_logged');
 Route::post('/submit_logout', 'AuthenticationController@submit_logout');
 Route::post('/check_session', 'AuthenticationController@check_session');

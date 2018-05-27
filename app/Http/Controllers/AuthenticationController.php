@@ -193,41 +193,46 @@ class AuthenticationController extends Controller
                     //now we need to check whether the user has activated their account
                     if ($user->users_active == 1) {
                         $ip = $request->ip();
-                        $ips = DB::table('user_ips')
-                                ->where([
-                                    ['ip_userid', $user->users_id],
-                                    ['ip_verified', 1]
-                                ])
-                                ->get();
-                        $ip_match = false;
-                        if (!is_null($ip_match) && count($ips) > 0) {
-                            foreach ($ips as $i) {
-                                if ($i->ip_ip == $ip) {
-                                    $ip_match = true;
-                                    break;
+                        $ip_check = DB::table('user_ips')
+                                    ->where([
+                                        ['ip_userid', $user->users_id],
+                                        ['ip_ip', $ip]
+                                    ])
+                                    ->first();
+
+                        if (!is_null($ip_check)) {
+                            if ($ip_check->ip_verified == 1) {
+                                //this is a valid user, coming from a valid ip address, so log them in
+                                $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                                $characters_length = strlen($characters);
+                                $random_string = '';
+                                for ($i = 0; $i < 50; $i++) {
+                                    $random_string .= $characters[rand(0, $characters_length - 1)];
                                 }
+
+                                //we now have $random_string, which we will insert into both the session and the database, and our auth middleware will check session vs database on each request
+                                DB::table('users')
+                                    ->where('users_id', $user->users_id)
+                                    ->update(['users_sessionkey' => $random_string, 'users_sessiontime' => time()]);
+
+                                session(['id' => $user->users_id, 'ip' => $ip, 'key' => $random_string]);
+
+                                return json_encode(['status' => 'success']);
+                            } else {
+                                //the user has already tried to login from this IP, but hasnt verified it, so re-send the email
+                                //TODO: CHECK THIS IS THE BEST COURSE OF ACTION
+                                $client = new PostmarkClient(env('POSTMARK_CLIENTKEY', ''));
+
+                                $sendResult = $client->sendEmail(
+                                  "accounts@activebook.com.au",
+                                  $email,
+                                  "Login Attempt from Unknown Location",
+                                  "An repeated attempt to log into your account was recently made from an unrecognised location, that hasn't yet been verified. For your protection, please verify that this login is genuine by clicking the link below, and then proceed to login as normal.\n".env('APP_URL', 'http://localhost')."/authenticate/".$user->users_id."/".$ip_check->ip_token."\n If this wasn't you, then please either contact our support team or just ignore this email - your account is secure. Thankyou for your assistance."
+                                );
+                                return json_encode(['status' => 'new_ip']);
                             }
-                        }
-
-                        if ($ip_match == true) {
-                            //this is a valid user, coming from a valid ip address, so log them in
-                            $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                            $characters_length = strlen($characters);
-                            $random_string = '';
-                            for ($i = 0; $i < 50; $i++) {
-                                $random_string .= $characters[rand(0, $characters_length - 1)];
-                            }
-
-                            //we now have $random_string, which we will insert into both the session and the database, and our auth middleware will check session vs database on each request
-                            DB::table('users')
-                                ->where('users_id', $user->users_id)
-                                ->update(['users_sessionkey' => $random_string, 'users_sessiontime' => time()]);
-
-                            session(['id' => $user->users_id, 'ip' => $ip, 'key' => $random_string]);
-
-                            return json_encode(['status' => 'success']);
                         } else {
-                            //TODO: notify the user that this login attempt is coming from a new computer or location, so send them an email to verify the login (email controller inserts the new ip address into the user_ips table and asks them to login again)
+                            //this is a new IP address, so require email authentication
                             $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
                             $characters_length = strlen($characters);
                             $random_string = '';
@@ -262,6 +267,55 @@ class AuthenticationController extends Controller
             }
         }
         return json_encode(['status' => 'error']);
+    }
+
+    public function authenticate(Request $request, $user_id = null, $token = null) {
+        if ($user_id != null && $token != null) {
+            $user = DB::table('users')
+                        ->where([
+                            ['users_id', $user_id],
+                            ['users_active', 1]
+                        ])
+                        ->first();
+            if (!is_null($user)) {
+                //the user exists
+                $authentication = DB::table('user_ips')
+                                    ->where([
+                                        ['ip_userid', $user_id],
+                                        ['ip_token', $token],
+                                        ['ip_verified', 0]
+                                    ])
+                                    ->first();
+                if (!is_null($verification)) {
+                    //we have a match, so authenticate the ip
+                    DB::table('user_ips')
+                        ->where('ip_id', $authentication->ip_id)
+                        ->update(['ip_token' => null, 'ip_verified' => 1]);
+
+                    if ($request->ip() != $authentication->ip_ip) {
+                        //if the current ip differs from the original one (and all others verified for the account), verify it too
+                        $ip_check = DB::table('user_ips')
+                                        ->where([
+                                            ['ip_userid', $user_id],
+                                            ['ip_ip', $request->ip()]
+                                        ])
+                                        ->first();
+                        if (!is_null($ip_check)) {
+                            if ($ip_check->ip_verified == 0) {
+                                DB::table('user_ips')
+                                    ->where('ip_id', $ip_check->ip_id)
+                                    ->update(['ip_token' => null, 'ip_verified' => 1]);
+                            }
+                        } else {
+                            DB::table('user_ips')
+                                ->insert(['ip_userid' => $user_id, 'ip_ip' => $request->ip(), 'ip_token' => null, 'ip_verified' => 1]);
+                        }
+                    }
+                    return redirect('/login');
+                }
+            }
+        }
+        return redirect('/');
     }
 
     public function check_logged(Request $request) {
