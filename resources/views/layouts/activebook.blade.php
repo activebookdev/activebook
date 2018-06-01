@@ -54,7 +54,7 @@
     <div id="app">
         <nav class="navbar navbar-expand-md active_nav">
             <div class="container" style="margin-left:5vw !important; width:90vw;">
-                <a class="navbar-brand active_name" href="{{ url('/login') }}">
+                <a class="navbar-brand active_name" href="{{ url('/') }}">
                     <b>Active</b>Book
                 </a>
                 <div>

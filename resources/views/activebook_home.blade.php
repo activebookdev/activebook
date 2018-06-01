@@ -1,4 +1,4 @@
-@extends('layouts.activebookhome')
+@extends('layouts.activebook')
 
 @section('style')
   <style>

@@ -24,6 +24,8 @@ Route::post('/submit_login', 'AuthenticationController@submit_login');
 Route::get('/authenticate/{user_id}/{token}', 'AuthenticationController@authenticate');
 Route::post('/check_logged', 'AuthenticationController@check_logged');
 Route::post('/submit_logout', 'AuthenticationController@submit_logout');
+Route::post('/submit_password_reset', 'AuthenticationController@submit_password_reset');
+Route::get('/reset/{user_id}/{token}','AuthenticationController@reset');
 Route::post('/check_session', 'AuthenticationController@check_session');
 
 Route::get('/profile', function () {

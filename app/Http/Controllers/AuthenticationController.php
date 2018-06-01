@@ -380,6 +380,82 @@ class AuthenticationController extends Controller
         }
     }
 
+    public function submit_password_reset(Request $request) {
+        $email = $request->input('email');
+        if (isset($email) && !empty($email)) {
+            $user = DB::table('users')
+                        ->where('users_email', $email)
+                        ->first();
+            if (!is_null($user)) {
+                if ($user->users_active == 1) {
+                    //the user exists and is active, so send the password reset email
+                    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                    $characters_length = strlen($characters);
+                    $random_string = '';
+                    for ($i = 0; $i < 30; $i++) {
+                        $random_string .= $characters[rand(0, $characters_length - 1)];
+                    }
+
+                    //make all previous pwresets for the user inactive
+                    DB::table('user_passwordresets')
+                        ->where([
+                            ['pwresets_userid', $user->users_id],
+                            ['pwresets_status', 0]
+                        ])
+                        ->update(['pwresets_token' => NULL, 'pwresets_status' => 2]);
+
+                    //make a password reset record in the DB
+                    $pwreset = DB::table('user_passwordresets')
+                                ->insertGetId(['pwresets_userid' => $user->users_id, 'pwresets_token' => $random_string, 'pwresets_created' => time(), 'pwresets_status' => 0]);
+
+                    if (isset($pwreset) && !is_null($pwreset)) {
+                        //email the user to have them verify their identity
+                        $client = new PostmarkClient(env('POSTMARK_CLIENTKEY', ''));
+
+                        $sendResult = $client->sendEmail(
+                          "accounts@activebook.com.au",
+                          $email,
+                          "Reset your Password",
+                          "Reset your Active Book password by clicking the link below.\n".env('APP_URL', 'http://localhost')."/reset/".$user->users_id."/".$random_string."\n If this wasn't you, then please either contact our support team or just ignore this email - your account is secure. Thankyou for your assistance."
+                        );
+                        return json_encode(['status' => 'success']);
+                    }
+                } else {
+                    return json_encode(['status' => 'inactive']);
+                }
+            } else {
+                return json_encode(['status' => 'no_account']);
+            }
+        }
+        return json_encode(['status' => 'error']);
+    }
+
+    public function reset(Request $request, $user_id = null, $token = null) {
+        if (!is_null($user_id) && !is_null($token)) {
+            $user = DB::table('users')
+                        ->where([
+                            ['users_id', $user_id],
+                            ['users_active', 1]
+                        ])
+                        ->first();
+            if (!is_null($user)) {
+                $reset = DB::table('user_passwordresets')
+                            ->where([
+                                ['pwresets_userid', $user_id],
+                                ['pwresets_token', $token],
+                                ['pwresets_created', '>=', time()-2*60*60], //reset link only active for 2 hrs
+                                ['pwresets_status', 0]
+                            ])
+                            ->first();
+                if (!is_null($reset)) {
+                    //we are allowed to reset our password
+                    return view('password_reset');
+                }
+            }
+        }
+        return redirect('/');
+    }
+
     public function check_session(Request $request) {
         //check that the user's session matches the page they're currently on
         $href = $request->input('href');

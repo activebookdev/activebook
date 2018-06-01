@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="{{asset('js/malihu-scrollbar/jquery.mCustomScrollbar.min.css')}}">
     <link rel="stylesheet" href="{{asset('js/hs-megamenu/src/hs.megamenu.css')}}">
     <!-- <link rel="stylesheet" href="{{asset('js/hamburgers/hamburgers.min.css')}}"> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-modal/2.2.6/css/bootstrap-modal-bs3patch.min.css">
 
     <!-- CSS Unify -->
     <link rel="stylesheet" href="{{asset('css/unify-core.css')}}">
@@ -60,7 +61,7 @@
     <div id="app">
         <nav class="navbar navbar-expand-md active_nav">
             <div class="container" style="margin-left:5vw !important; width:90vw;">
-                <a class="navbar-brand active_name" href="{{ url('/login') }}">
+                <a class="navbar-brand active_name" href="{{ url('/') }}">
                     <b>Active</b>Book
                 </a>
                 <div>
