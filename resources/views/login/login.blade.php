@@ -126,7 +126,7 @@
                         success: function(data) {
                             data = JSON.parse(data);
                             if (data['status'] == 'success') {
-                                window.location.href = '/profile';
+                                window.location.href = '/profile/'+data['user_id'];
                             } else if (data['status'] == 'new_ip') {
                                 swal('', "You have attempted to login from a location that is new to your account. Please verify your login by clicking the link we've sent to your email address, and then try again.", 'warning');
                             } else if (data['status'] == 'inactive') {

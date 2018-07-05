@@ -9,6 +9,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>ActiveBook</title>
+    <link rel="icon" href="{{asset('/images/ab_icon.png')}}">
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{asset('favicon.ico')}}">

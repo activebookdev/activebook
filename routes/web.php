@@ -28,11 +28,19 @@ Route::post('/submit_password_reset', 'AuthenticationController@submit_password_
 Route::get('/reset/{user_id}/{token}','AuthenticationController@reset');
 Route::post('/check_session', 'AuthenticationController@check_session');
 
-Route::get('/profile', function () {
+Route::get('/profile_old', function () {
 	return view('activebook_profile');
 })->middleware('loggedin');
 
-Route::get('/profile_edit', 'ProfileController@profile_edit');
+Route::get('/files/pictures/{picture_name}', 'ProfileController@get_picture');
+
+Route::get('/profile/{user_id}', 'ProfileController@profile');
+Route::post('/get_user_bio', 'ProfileController@get_user_bio')->middleware('loggedin');
+Route::post('/submit_user_bio', 'ProfileController@submit_user_bio')->middleware('loggedin');
+Route::post('/submit_user_profilepic', 'ProfileController@submit_user_profilepic')->middleware('loggedin');
+Route::post('/get_user_info', 'ProfileController@get_user_info')->middleware('loggedin');
+Route::post('/submit_user_info', 'ProfileController@submit_user_info')->middleware('loggedin');
+Route::get('/verify_add/{user_id}/{token}', 'ProfileController@verify_add');
 
 Route::get('/search', function () {
 	return view('activebook_search');
@@ -51,3 +59,5 @@ Route::get('/home', 'HomeController@index')->name('home');
 Route::get('/test', function () {
     return view('layout_test');
 });
+
+Route::get('/testcode', 'ProfileController@testcode');

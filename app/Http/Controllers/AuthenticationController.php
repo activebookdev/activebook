@@ -66,18 +66,13 @@ class AuthenticationController extends Controller
                 }
 
                 $user_id = DB::table('users')
-                            ->insertGetId(['users_fname' => $fname, 'users_lname' => $lname, 'users_email' => $email, 'users_password' => Hash::make($password), 'users_type' => 0, 'users_active' => 0]); //users active = 0 means unverified, 1 means verified and active, and -1 means inactive
+                            ->insertGetId(['users_fname' => $fname, 'users_lname' => $lname, 'users_email' => $email, 'users_password' => Hash::make($password), 'users_type' => 0, 'users_createdat' => time(), 'users_active' => 0]); //users active = 0 means unverified, 1 means verified and active, and -1 means inactive
 
                 if (isset($user_id) && !empty($user_id)) {
                     DB::table('user_ips')
                         ->insert(['ip_userid' => $user_id, 'ip_ip' => $request->ip(), 'ip_token' => 'initial', 'ip_verified' => 0]);
 
-                    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                    $characters_length = strlen($characters);
-                    $token = '';
-                    for ($i = 0; $i < 30; $i++) {
-                        $token .= $characters[rand(0, $characters_length - 1)];
-                    }
+                    $token = generate_token(30);
 
                     $email_auth = DB::table('user_emails')
                                     ->insertGetId(['emails_userid' => $user_id, 'emails_email' => $email, 'emails_token' => $token, 'emails_verified' => 0, 'emails_active' => 1]);
@@ -92,8 +87,19 @@ class AuthenticationController extends Controller
                           "Welcome to your new Active Book account!",
                           "Congratulations ".$fname." ".$lname." for making your first step towards your fitness and health dreams! Click on the link to verify your email address: ".env('APP_URL', 'http://localhost:8000')."/verify/".(string)$user_id."/".$token
                         );
-
+                        $sendResult = $client->sendEmailWithTemplate(
+                            "accounts@activebook.com.au",
+                            $email,
+                            7269544,
+                            [
+                                "name" => $fname,
+                                "verify_url" => env('APP_URL', 'http://localhost:8000')."/verify/".(string)$user_id."/".$token,
+                                "support_email" => "support@activebook.com.au",
+                                "phone_number" => "0426884710"
+                            ]
+                        );
                         //TODO: INTERPRET AND USE sendResult
+
                         return json_encode(['status' => 'success']);
                     }
                 }
@@ -155,7 +161,7 @@ class AuthenticationController extends Controller
                                 ->insert(['ip_userid' => $user->users_id, 'ip_ip' => $request->ip(), 'ip_verified' => 1]);
                         }
                     }
-                    return view('login.verified', ['name' => $user->users_fname]);
+                    return view('login.verified', ['name' => $user->users_fname, 'type' => 0]);
                 }
             }
         }
@@ -217,7 +223,7 @@ class AuthenticationController extends Controller
 
                                 session(['id' => $user->users_id, 'ip' => $ip, 'key' => $random_string]);
 
-                                return json_encode(['status' => 'success']);
+                                return json_encode(['status' => 'success', 'user_id' => $user->users_id]);
                             } else {
                                 //the user has already tried to login from this IP, but hasnt verified it, so re-send the email
                                 //TODO: CHECK THIS IS THE BEST COURSE OF ACTION

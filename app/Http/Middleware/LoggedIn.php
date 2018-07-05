@@ -35,6 +35,11 @@ class LoggedIn {
                 }
             }
         }
-        return redirect('/login');
+        //here, the user has failed the middleware, so either redirect them to '/login' if GET, or return status error if POST
+        if ($request->isMethod('get')) {
+            return redirect('/login');
+        } else {
+            return json_encode(['status' => 'error']);
+        }
     }
 }

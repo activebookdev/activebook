@@ -9,6 +9,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>ActiveBook</title>
+    <link rel="icon" href="{{asset('/images/ab_icon.png')}}">
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{asset('favicon.ico')}}">
@@ -172,8 +173,6 @@
                     <div class="u-heading-v2-3--bottom g-brd-white-opacity-0_8 g-mb-20">
                       <h2 class="u-heading-v2__title h6 text-uppercase mb-0">Our Contacts</h2>
                     </div>
-
-                    <address class="g-bg-no-repeat g-font-size-12 mb-0" style="background-image: url(../../assets/img/maps/map2.png);">
                   <!-- Location -->
                   <div class="d-flex g-mb-20">
                     <div class="g-mr-10">
