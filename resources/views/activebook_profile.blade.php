@@ -1,6 +1,18 @@
 @extends('layouts.activebook')
 
 @section('style')
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+
+    <!-- the following are for jquery-file-upload -->
+    <link rel="stylesheet" href="{{asset('css/file-upload/jquery.fileupload.css')}}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.structure.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.theme.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-sweetalert/1.0.1/sweetalert.min.css">
+    <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="http://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
+
   <style>
     table.bordered_cells td {
     }
@@ -104,6 +116,51 @@
       border:2px solid #808080;
       height:30px;
     }
+
+
+    #timetable_table {
+        border:1px solid #e6e6e6;
+        border-radius:5px;
+        width:100%;
+    }
+    #timetable_table thead th {
+        text-align:center;
+        font-size:18px;
+    }
+    td.timetable_inactive {
+        background-color: white;
+        border-right: 1px solid #e6e6e6;
+        border-bottom: 1px solid #e6e6e6;
+    }
+    td.timetable_inactive_hover {
+        background-color: #f2f2f2 !important;
+    }
+    td.timetable_active {
+        background-color: #99ff99;
+        border-right: 1px solid #e6e6e6;
+        border-bottom: 1px solid #e6e6e6;
+    }
+    td.timetable_active_hover {
+        background-color: #4dff4d !important;
+    }
+    td.timetable_booked {
+        background-color: #ff9999;
+        border-right: 1px solid #e6e6e6;
+        border-bottom: 1px solid #e6e6e6;
+    }
+    td.timetable_booked_hover {
+        background-color: #ff4d4d !important;
+    }
+    td.timetable_time {
+        text-align: center;
+        border-right:1px solid #111;
+    }
+    td.timetable_time_hover {
+        background-color: #f2f2f2;
+    }
+    th.timetable_day_hover {
+        background-color: #f2f2f2;
+    }
     #book_button {
       background-color:#70db70;
       border:2px solid #29a329;
@@ -114,7 +171,7 @@
       position: fixed; /* Sit on top of the page content */
       width: 80%; /* Full width (cover the whole page) */
       height: 80%; /* Full height (cover the whole page) */
-      top: 0; 
+      top: 0;
       left: 0;
       right: 0;
       bottom: 0;
@@ -134,7 +191,7 @@
           <!-- User Image -->
           <div class="u-block-hover g-pos-rel">
             <figure>
-              <img class="img-fluid w-100 u-block-hover__main--zoom-v1" src="{{asset('images/adrian.jpeg')}}">
+              <img class="img-fluid w-100 u-block-hover__main--zoom-v1" src="{{$picture_name}}">
             </figure>
 
             <!-- Figure Caption -->
@@ -155,7 +212,7 @@
           </div>
           <!-- User Image -->
           <div id="profile_overlay" style="display:none;">
-            <img class="img-fluid w-100 u-block-hover__main--zoom-v1" src="{{asset('images/adrian.jpeg')}}">
+            <img class="img-fluid w-100 u-block-hover__main--zoom-v1" src="{{$picture_name}}">
           </div>
 
           <!-- Sidebar Navigation -->
@@ -163,11 +220,11 @@
             <div class="list-group-item list-group-item-action justify-content-between">
               <!-- <span style="vertical-align:center; font-size:20px;">Starts at: <span style="font-size:30px;">$50/hr</span></span> -->
               <div class="row">
-                <div class="col-lg-6 vertically_centered">
-                  <p style="vertical-align:center; font-size:20px;">Starts at:</p>
+                <div class="col-lg-6" style="height:50px; padding-top:10px;">
+                  <span style="font-size:20px;">Starts at:</span>
                 </div>
                 <div class="col-lg-6 vertically_centered">
-                  <p style="vertical-align:center; font-size:30px;">$50/hr</p>
+                  <p style="vertical-align:center; font-size:30px;">{{$baserate}}</p>
                 </div>
               </div>
             </div>
@@ -186,27 +243,26 @@
 
                     <div class="g-line-height-1">
                       <h4 class="h5">Total Sessions</h4>
-                      <div class="js-counter g-font-size-30" data-comma-separated="true">2147</div>
+                      <div class="js-counter g-font-size-30" data-comma-separated="true">{{$stats['sessions_total']}}</div>
                     </div>
                   </header>
 
                   <div class="d-flex justify-content-between text-uppercase g-mb-25">
                     <div class="g-line-height-1">
                       <h5 class="h6 g-font-weight-600">Last Week</h5>
-                      <div class="js-counter g-font-size-16" data-comma-separated="true">12</div>
+                      <div class="js-counter g-font-size-16" data-comma-separated="true">{{$stats['sessions_week']}}</div>
                     </div>
 
                     <div class="text-right g-line-height-1">
                       <h5 class="h6 g-font-weight-600">Last Month</h5>
-                      <div class="js-counter g-font-size-16" data-comma-separated="true">53</div>
+                      <div class="js-counter g-font-size-16" data-comma-separated="true">{{$stats['sessions_month']}}</div>
                     </div>
                   </div>
 
-                  <h6 class="g-mb-10">Customer Satisfaction<span class="float-right g-ml-10">72%</span></h6>
-                  <div class="js-hr-progress-bar progress g-bg-black-opacity-0_1 rounded-0 g-mb-10">
+                  <h6 class="g-mb-10">Customer Satisfaction<span class="float-right g-ml-10">{{$stats['rating']}}</span></h6>
+                  <div class="js-hr-progress-bar progress g-bg-black-opacity-0_1 rounded-0 g-mb-5">
                     <div class="js-hr-progress-bar-indicator progress-bar g-bg-white u-progress-bar--xs" role="progressbar" style="width: 72%;" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100"></div>
                   </div>
-                  <small class="g-font-size-12">6% less than last month</small>
                 </div>
               </div>
             </div>
@@ -226,32 +282,16 @@
               <div class="col-lg-12">
                 <!-- User Details -->
                 <div class="d-flex align-items-center justify-content-sm-between g-mb-5">
-                  <h2 class="g-font-weight-300 g-mr-10">Fred Smith</h2>
+                  <h2 class="g-font-weight-300 g-mr-10">{{$name}}</h2>
                   <ul class="list-inline mb-0">
-                    <li class="list-inline-item g-mx-2">
-                      <a class="u-icon-v1 u-icon-size--sm u-icon-slide-up--hover g-color-gray-light-v1 g-bg-gray-light-v5 g-color-gray-light-v1--hover rounded-circle" href="#!">
-                        <i class="g-font-size-default g-line-height-1 u-icon__elem-regular fa fa-facebook"></i>
-                        <i class="g-font-size-default g-line-height-0_8 u-icon__elem-hover fa fa-facebook"></i>
-                      </a>
-                    </li>
-                    <li class="list-inline-item g-mx-2">
-                      <a class="u-icon-v1 u-icon-size--sm u-icon-slide-up--hover g-color-gray-light-v1 g-bg-gray-light-v5 g-color-gray-light-v1--hover rounded-circle" href="#!">
-                        <i class="g-font-size-default g-line-height-1 u-icon__elem-regular fa fa-twitter"></i>
-                        <i class="g-font-size-default g-line-height-0_8 u-icon__elem-hover fa fa-twitter"></i>
-                      </a>
-                    </li>
-                    <li class="list-inline-item g-mx-2">
-                      <a class="u-icon-v1 u-icon-size--sm u-icon-slide-up--hover g-color-gray-light-v1 g-bg-gray-light-v5 g-color-gray-light-v1--hover rounded-circle" href="#!">
-                        <i class="g-font-size-default g-line-height-1 u-icon__elem-regular fa fa-dribbble"></i>
-                        <i class="g-font-size-default g-line-height-0_8 u-icon__elem-hover fa fa-dribbble"></i>
-                      </a>
-                    </li>
-                    <li class="list-inline-item g-mx-2">
-                      <a class="u-icon-v1 u-icon-size--sm u-icon-slide-up--hover g-color-gray-light-v1 g-bg-gray-light-v5 g-color-gray-light-v1--hover rounded-circle" href="#!">
-                        <i class="g-font-size-default g-line-height-1 u-icon__elem-regular fa fa-linkedin"></i>
-                        <i class="g-font-size-default g-line-height-0_8 u-icon__elem-hover fa fa-linkedin"></i>
-                      </a>
-                    </li>
+                    @foreach($socials as $s)
+                      <li class="list-inline-item g-mx-2">
+                        <a class="u-icon-v1 u-icon-size--sm u-icon-slide-up--hover g-color-gray-light-v1 g-bg-gray-light-v5 g-color-gray-light-v1--hover rounded-circle" href="{{$s['url']}}">
+                          <i class="g-font-size-default g-line-height-1 u-icon__elem-regular {{$s['name']}}"></i>
+                          <i class="g-font-size-default g-line-height-0_8 u-icon__elem-hover {{$s['name']}}"></i>
+                        </a>
+                      </li>
+                    @endforeach
                   </ul>
                 </div>
                 <!-- End User Details -->
@@ -259,24 +299,37 @@
                 <!-- User Position -->
                 <h4 class="h6 g-font-weight-300 g-mb-10">
                     <!-- TODO: replace this icon with a placeholder gym logo-->
-                    <img src="{{asset('images/gymlogo.jpg')}}" alt="Reviewer" style="border-radius:50%; border:2px solid orange" height="40" width="40">&nbsp;&nbsp;GenericGym
-              </h4>
+                    <div class="row">
+                      @foreach($locations as $i => $l)
+                        @if($i < 4)
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                          <a href="/location/{{$l['id']}}">
+                            <img src="{{$l['picture_url']}}" style="border-radius:50%; border:2px solid orange" height="40" width="40">&nbsp;&nbsp;{{$l['name']}}
+                          </a>
+                        </div>
+                        @endif
+                        <!-- TODO: MAKE NEW ROW FOR > 4 LOCATIONS? -->
+                      @endforeach
+                    </div>
+                </h4>
                 <!-- End User Position -->
 
                 <!-- User Info -->
                 <ul class="list-inline g-font-weight-300">
+                  @if($age != '')
+                      <li class="list-inline-item g-mr-20">
+                          <i class="icon-user g-pos-rel g-top-1 g-color-gray-dark-v5 g-mr-5"></i> {{$age}} years old
+                      </li>
+                  @endif
                   <li class="list-inline-item g-mr-20">
-                    <i class="icon-location-pin g-pos-rel g-top-1 g-color-gray-dark-v5 g-mr-5"></i> 123 Pitt St, Sydney
-                  </li>
-                  <li class="list-inline-item g-mr-20">
-                    <i class="icon-check g-pos-rel g-top-1 g-color-gray-dark-v5 g-mr-5"></i> Verified Trainer
+                      <i class="icon-clock g-pos-rel g-top-1 g-color-gray-dark-v5 g-mr-5"></i> Member for {{$member_time}}
                   </li>
                 </ul>
                 <!-- End User Info -->
 
                 <hr class="g-brd-gray-light-v4 g-my-20">
 
-                <p class="lead g-line-height-1_8">I'm a fit, young personal trainer who works independently at GenericGym. Give me a chance and I'll motivate you to achieve your fitness dreams. I specialise in weight loss, but am also effective at helping those who are already fit gain muscle. I only want clients who are dedicated to their gym goals.</p>
+                <p class="lead g-line-height-1_8">{{$bio}}</p>
               </div>
             </div>
           </div>
@@ -290,27 +343,25 @@
                 </div>
               <div class="col-lg-6">
                 <br>
-                <div class="trainer_review">
-                  <div class="row">
-                    <div class="col-lg-3">
-                      <img src="{{asset('images/ethan.jpg')}}" alt="Reviewer" style="border-radius:50%;" height="70" width="70">
+                @foreach($reviews as $i => $r)
+                  @if($i < 2)
+                    <div class="trainer_review">
+                      <div class="row">
+                        <div class="col-lg-3">
+                          <a href="/profile/{{$r['reviewer_id']}}">
+                            <img src="{{$r['reviewer_picture_url']}}" alt="Reviewer" style="border-radius:50%;" height="70" width="70">
+                          </a>
+                        </div>
+                        <div class="col-lg-9">
+                          <span style="font-size:14px;">"{{$r['review']}}"</span>
+                        </div>
+                      </div>
                     </div>
-                    <div class="col-lg-9">
-                      <span style="font-size:14px;">"Fred was a great trainer, he helped me gain confidence whilst also being harsh enough to push me towards my weight ..."</span>
-                    </div>
-                  </div>
-                </div>
-                <br><br>
-                <div class="trainer_review">
-                  <div class="row">
-                    <div class="col-lg-3">
-                      <img src="{{asset('images/beth.jpg')}}" alt="Reviewer" style="border-radius:50%;" height="70" width="70">
-                    </div>
-                    <div class="col-lg-9">
-                      <span style="font-size:14px;">"Fred was a terrible trainer, he wasn't nice to me and pushed me way too hard for someone who is just starting out ..."</span>
-                    </div>
-                  </div>
-                </div>
+                  @endif
+                  @if($i == 0)
+                    <br><br>
+                  @endif
+                @endforeach
               </div>
             </div>
             <br>
@@ -320,187 +371,69 @@
           </div>
           <br>
           <!-- Experience Timeline -->
-          <div class="card border-0 rounded-0 g-mb-40">
-            <!-- Panel Header -->
-            <div class="card-header d-flex align-items-center justify-content-between g-bg-gray-light-v5 border-0 g-mb-15">
-              <h3 class="h6 mb-0">
-                  <i class="icon-briefcase g-pos-rel g-top-1 g-mr-5"></i> Availability
-                </h3>
-              <div class="dropdown g-mb-10 g-mb-0--md">
-                <span class="d-block g-color-primary--hover g-cursor-pointer g-mr-minus-5 g-pa-5" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="icon-options-vertical g-pos-rel g-top-1"></i>
-                  </span>
-                <div class="dropdown-menu dropdown-menu-right rounded-0 g-mt-10">
-                  <a class="dropdown-item g-px-10" href="#!">
-                    <i class="icon-layers g-font-size-12 g-color-gray-dark-v5 g-mr-5"></i> Projects
-                  </a>
-                  <a class="dropdown-item g-px-10" href="#!">
-                    <i class="icon-wallet g-font-size-12 g-color-gray-dark-v5 g-mr-5"></i> Wallets
-                  </a>
-                  <a class="dropdown-item g-px-10" href="#!">
-                    <i class="icon-fire g-font-size-12 g-color-gray-dark-v5 g-mr-5"></i> Reports
-                  </a>
-                  <a class="dropdown-item g-px-10" href="#!">
-                    <i class="icon-settings g-font-size-12 g-color-gray-dark-v5 g-mr-5"></i> Users Setting
-                  </a>
-
-                  <div class="dropdown-divider"></div>
-
-                  <a class="dropdown-item g-px-10" href="#!">
-                    <i class="icon-plus g-font-size-12 g-color-gray-dark-v5 g-mr-5"></i> View More
-                  </a>
-                </div>
-              </div>
-            </div>
-            <!-- End Panel Header -->
-
+          <div class="g-brd-around g-brd-gray-light-v4 g-pa-20 g-mb-40">
+            <span style="font-size:25px;">Timetable</span>
             <!-- Panel Body -->
             <div class="card-block u-info-v1-1">
-              <!-- Start Weekly Calendar -->
-              <div class="row">
-                <div class="col-lg-4">
-                  <div class="js-scrollbar g-bg-white-gradient-v1--after g-height-300 g-pa-0">
-                    <!-- TODO: INSERT YEAR SELECTOR HERE -->
-                    <!--
-                    <table class="u-table--v2 bordered_cells table_thinner" style="width:100%;border:1px solid black;">
-                      <tr>
-                        <th style="border:1px solid black;">Month</th>
-                        <th style="border:1px solid black;">Week</th>
-                      </tr>
-                      <tr class="odd">
-                        <td rowspan="5" class="month_cell">Jan</td>
-                        <td class="grey_border week_cell">3rd - 9th</td>
-                      </tr>
-                      <tr class="even">
-                        <td class="grey_border week_cell">10th - 16th</td>
-                      </tr>
-                      <tr class="odd">
-                        <td class="grey_border week_cell">17th - 23rd</td>
-                      </tr>
-                      <tr class="even">
-                        <td class="grey_border week_cell">24th - 30th</td>
-                      </tr>
-                      <tr class="odd">
-                        <td class="grey_border week_cell bottom_week_cell">31st - 6th</td>
-                      </tr>
-                      <tr class="even">
-                        <td rowspan="3" class="month_cell">Feb</td>
-                        <td class="grey_border week_cell top_week_cell">7th - 13th</td>
-                      </tr>
-                      <tr class="odd">
-                        <td class="grey_border week_cell">14th - 20th</td>
-                      </tr>
-                      <tr class="even">
-                        <td class="grey_border week_cell bottom_week_cell">21st - 27th</td>
-                      </tr>
-                    </table>
-                    -->
-                    <table id="week_calendar" class="u-table--v2 table-thin table_centered" style="width:100%;">
-                      <tr>
-                        <th>Month</th>
-                        <th>Week</th>
-                      </tr>
-                      <tr>
-                        <td>Jan</td>
-                        <td>
-                          <div class="row">
-                            <div class="col-lg-2 weeks_box"></div>
-                            <div class="col-lg-2 weeks_box"></div>
-                            <div class="col-lg-2 weeks_box"></div>
-                            <div class="col-lg-2 weeks_box"></div>
-                            <div class="col-lg-2 weeks_box"></div>
-                          </div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>Feb</td>
-                        <td></td>
-                      </tr>
-                      <tr>
-                        <td>March</td>
-                        <td></td>
-                      </tr>
-                    </table>
+              <!-- Start Week Selector -->
+              <div class="row g-mb-35">
+                <div class="col-lg-3 col-md-3 col-sm-3 row">
+                  <div class="col-lg-9 col-md-9 col-sm-9" style="text-align:center;">
+                    <span style="font-size:20px;">Year</span>
+                    <select id="timetable_year" style="font-size:16px; padding:2px; border-radius:2px;">
+                        <option disabled selected value>Year</option>
+                        @foreach($years as $year)
+                            <option value="{{$year}}">{{$year}}</option>
+                        @endforeach
+                    </select>
+                  </div>
+                  <div class="col-lg-3 col-md-3 col-sm-3 g-pt-15">
+                    <i class="fas fa-arrow-right fa-lg"></i>
                   </div>
                 </div>
-                <div class="col-lg-8">
-                  <div class="js-scrollbar g-bg-white-gradient-v1--after g-height-300 g-pa-0">
-                    <table id="timetable" class="u-table--v2 bordered_cells table_thin" style="width:100%">
-                      <tr>
-                        <th id="0_0" style="background-color:grey; width:70px;"></th>
-                        <th id="1_0">Mon</th>
-                        <th id="2_0">Tue</th> 
-                        <th id="3_0">Wed</th>
-                        <th id="4_0">Thu</th>
-                        <th id="5_0">Fri</th> 
-                        <th id="6_0">Sat</th>
-                        <th id="7_0">Sun</th>
-                      </tr>
-                      <tr>
-                        <td id="0_1" class="hour">9am</td>
-                        <td id="1_1" class="inactive"></td>
-                        <td id="2_1" class="inactive"></td>
-                        <td id="3_1" class="open"></td>
-                        <td id="4_1" class="booked"></td> 
-                        <td id="5_1" class="inactive"></td>
-                        <td id="6_1" class="open"></td>
-                        <td id="7_1" class="open"></td>
-                      </tr>
-                      <tr>
-                        <td id="0_2" class="hour">10am</td>
-                        <td id="1_2" class="booked"></td> 
-                        <td id="2_2" class="open"></td>
-                        <td id="3_2" class="booked"></td>
-                        <td id="4_2" class="open"></td>
-                        <td id="5_2" class="inactive"></td>
-                        <td id="6_2" class="open"></td>
-                        <td id="7_2" class="inactive"></td>
-                      </tr>
-                      <tr>
-                        <td id="0_3" class="hour">11am</td>
-                        <td id="1_3" class="inactive"></td> 
-                        <td id="2_3" class="booked"></td>
-                        <td id="3_3" class="open"></td>
-                        <td id="4_3" class="open"></td> 
-                        <td id="5_3" class="open"></td>
-                        <td id="6_3" class="inactive"></td>
-                        <td id="7_3" class="inactive"></td>
-                      </tr>
-                      <tr>
-                        <td id="0_4" class="hour">12pm</td>
-                        <td id="1_4" class="open"></td> 
-                        <td id="2_4" class="booked"></td>
-                        <td id="3_4" class="booked"></td>
-                        <td id="4_4" class="open"></td> 
-                        <td id="5_4" class="inactive"></td>
-                        <td id="6_4" class="inactive"></td>
-                        <td id="7_4" class="open"></td>
-                      </tr>
-                      <tr>
-                        <td>1pm</td>
-                        <td></td> 
-                        <td></td>
-                        <td></td>
-                        <td></td> 
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                      </tr>
-                      <tr>
-                        <td>2pm</td>
-                        <td></td> 
-                        <td></td>
-                        <td></td>
-                        <td></td> 
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                      </tr>
-                    </table>
+                <div class="col-lg-3 col-md-3 col-sm-3 row">
+                  <div class="col-lg-9 col-md-9 col-sm-9" style="text-align:center;">
+                    <span style="font-size:20px;">Month</span>
+                    <select id="timetable_month" style="font-size:16px; padding:2px; border-radius:2px;">
+                        <option disabled selected value>Month</option>
+                    </select>
                   </div>
+                  <div class="col-lg-3 col-md-3 col-sm-3 g-pt-15">
+                    <i class="fas fa-arrow-right fa-lg"></i>
+                  </div>
+                </div>
+                <div class="col-lg-3 col-md-3 col-sm-3 row">
+                  <div class="col-lg-9 col-md-9 col-sm-9" style="text-align:center;">
+                    <span style="font-size:20px;">Week</span>
+                    <select id="timetable_week" style="font-size:16px; padding:2px; border-radius:2px;">
+                        <option disabled selected value>Week</option>
+                    </select>
+                  </div>
+                  <div class="col-lg-3 col-md-3 col-sm-3 g-pt-15">
+                    <i class="fas fa-arrow-right fa-lg"></i>
+                  </div>
+                </div>
+                <div class="col-lg-3 col-md-3 col-sm-3 g-pt-10 g-pl-30">
+                  <button id="show_week_button" class="btn btn-info btn-labeled"><span class="btn-label"><i class="fas fa-angle-double-down"></i></span>&nbsp;&nbsp;Show</button>
                 </div>
               </div>
-              <!-- End Weekly Calendar -->
+              <!-- End Week Selector -->
+
+              <!-- Start Timetable -->
+                <div class="row">
+                    <table id="timetable_table" style="display:none;">
+                        <thead>
+                            <th id="time" style="border-right:1px solid #111;"></th>
+                            <th id="mon">Mon</th>
+                            <th id="tue">Tue</th>
+                            <th id="wed">Wed</th>
+                            <th id="thu">Thu</th>
+                            <th id="fri">Fri</th>
+                            <th id="sat">Sat</th>
+                            <th id="sun">Sun</th>
+                        </thead>
+                    </table>
+                </div>
             </div>
             <!-- End Panel Body -->
           </div>
@@ -515,11 +448,64 @@
       </div>
     </div>
   </section>
+
+@if($access == 0)
+    <div id="session_info_modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Session Details: <span id="session_info_daydesc"></span></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div id="session_info_body" class="modal-body">
+                    <div id="session_location" class="row" data-location-id="0">
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <figure>
+                                <img class="img-fluid w-50" src="">
+                            </figure>
+                        </div>
+                        <div class="col-lg-4 col-md-4 col-sm-4">
+
+                        </div>
+                        <div class="col-lg-5 col-md-5 col-sm-5">
+
+                        </div>
+                    </div>
+                    <select id="session_activity_select" style="font-size:20px; padding:3px; border-radius:3px;"></select>
+                    <br>
+                    <span id="session_activity_choice" style="font-size:20px;"></span>
+                </div>
+                <div class="modal-footer">
+                    <button id="session_add_submit" type="button" class="btn btn-primary">Add Session</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+@elseif($access == 1)
+
+
+@endif
 @endsection
 
 
   <!-- Page Javascript -->
 @section('scripts')
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-sweetalert/1.0.1/sweetalert.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+  <script src="http://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  @if($access == 1)
+      <script src="{{asset('js/file-upload/vendor/jquery.ui.widget.js')}}"></script>
+      <script src="https://blueimp.github.io/JavaScript-Load-Image/js/load-image.all.min.js"></script>
+      <script src="https://blueimp.github.io/JavaScript-Canvas-to-Blob/js/canvas-to-blob.min.js"></script>
+      <script src="{{asset('js/file-upload/jquery.iframe-transport.js')}}"></script>
+      <script src="{{asset('js/file-upload/jquery.fileupload.js')}}"></script>
+      <script src="{{asset('js/file-upload/jquery.fileupload-process.js')}}"></script>
+      <script src="{{asset('js/file-upload/jquery.fileupload-image.js')}}"></script>
+      <script src="{{asset('js/file-upload/jquery.fileupload-validate.js')}}"></script>
+  @endif
+
   <script>
     $(document).on('ready', function () {
         // initialization of go to
@@ -534,24 +520,27 @@
         // initialization of HSScrollBar component
         $.HSCore.components.HSScrollBar.init( $('.js-scrollbar') );
 
+        var names = [];
+        var percentages = [];
+        var bgcolours = [];
+        var bdcolours = [];
+        @foreach($activities as $a)
+          names.push("{{$a['name']}}");
+          percentages.push(Number("{{$a['percentage']}}"));
+          bgcolours.push("{{$a['bgcolour']}}");
+          bdcolours.push("{{$a['bdcolour']}}");
+        @endforeach
+
         var ctx = document.getElementById("activitychart").getContext('2d');
         var myChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: ["Weights", "Fitness", "Cardio"],
+                labels: names,
                 datasets: [{
                     label: '% of Training Type',
-                    data: [12, 19, 3],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255,99,132,1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)'
-                    ],
+                    data: percentages,
+                    backgroundColor: bgcolours,
+                    borderColor: bdcolours,
                     borderWidth: 1
                 }]
             },
@@ -559,115 +548,263 @@
             }
         });
 
-        var update_cost = function() {
-          return 0;
+        $(document).on('change', "#timetable_year", function(){
+            //get the viewable months for this year (AB only allows booking up to 6 months in advance)
+            $.ajax({
+                method: 'POST',
+                url: '/timetable_get_months',
+                data: 'year='+$('#timetable_year').val(),
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(data) {
+                    data = JSON.parse(data);
+                    if (data['status'] == 'success') {
+                        $('#timetable_month').val('');
+                        $('#timetable_week').val('');
+                        $('#timetable_month').html('<option disabled selected value>Month</option>'+data['html']);
+                    } else {
+                        swal('', 'There was an error. Please reload the page and try again.', 'error');
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(JSON.stringify(jqXHR));
+                    console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                }
+            });
+        });
+
+        $(document).on('change', "#timetable_month", function(){
+            //get the weeks that start in this month
+            $.ajax({
+                method: 'POST',
+                url: '/timetable_get_weeks',
+                data: 'year='+$('#timetable_year').val()+'&month='+$('#timetable_month').val(),
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(data) {
+                    data = JSON.parse(data);
+                    if (data['status'] == 'success') {
+                        $('#timetable_week').val('');
+                        $('#timetable_week').html('<option disabled selected value>Week</option>'+data['html']);
+                    } else {
+                        swal('', 'There was an error. Please reload the page and try again.', 'error');
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(JSON.stringify(jqXHR));
+                    console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                }
+            });
+        });
+
+        var show_timetable = false;
+        var timetable;
+
+        var timetable_format = function(json) {
+            //we need to convert the 'inactive', 'active', or 'booked' html of each td into the class of the td, then clear the html
+            $('#timetable_table').find('td:contains("inactive")').addClass('timetable_inactive');
+            $('#timetable_table').find('td:contains("inactive")').html('');
+            $('#timetable_table').find('td:contains("active")').addClass('timetable_active');
+            $('#timetable_table').find('td:contains("active")').html('');
+            $('#timetable_table').find('td:contains("booked")').addClass('timetable_booked');
+            $('#timetable_table').find('td:contains("booked")').html('');
+            //remove the row styling
+            $('#timetable_table').find('tr.odd').removeClass('odd');
+            $('#timetable_table').find('tr.even').removeClass('even');
+            //make time column text-align center and add the right border
+            $('#timetable_table').find('tr').each(function(){
+                $(this).find('td').first().addClass('timetable_time');
+            });
+            //make table 100% width (fixed px?)
+            $('#timetable_table_wrapper').attr('style', 'width:100%');
+            $('#timetable_table').attr('style', 'width:100%');
+            //fix double borders on right and bottom cells
+            $('#timetable_table').find('tr').each(function(){
+                var style = '';
+                if (typeof $(this).find('td').last().attr('style') != 'undefined') {
+                    style = $(this).find('td').last().attr('style')+' ';
+                }
+                $(this).find('td').last().attr('style', style+'border-right: none;');
+            });
+            var i = 0;
+            $('#timetable_table').find('tr').last().find('td').each(function() {
+                if (i > 0) {
+                    var style = '';
+                    if (typeof $(this).attr('style') != 'undefined') {
+                        style = $(this).attr('style')+' ';
+                    }
+                    $(this).attr('style', style+'border-bottom: none;');
+                }
+                i++;
+            });
         }
 
-        var inactive_flash = function(cell, go) {
-          if (go == true) {
-            cell.removeClass('inactive-blink');
-          } else {
-            go = true;
-            setTimeout(inactive_flash(cell, go), 100); // check again in a second
-          }
-        }
-
-        var booked_flash = function(cell, go) {
-          if (go == true) {
-            cell.removeClass('booked-blink');
-          } else {
-            go = true;
-            setTimeout(booked_flash(cell, go), 100); // check again in a second
-          }
-        }
-
-        $(document).on('click', '#timetable tr td', function(e) {
-          e.preventDefault();
-          //mark colour change of the box
-          if ($(this).hasClass('inactive')) {
-            //make a quick grey flash in the cell
-            $(this).addClass('inactive-blink');
-            var cell = $(this);
-            var go = false;
-            setTimeout(function() {
-              inactive_flash(cell, go);
-            }, 100);
-          } else if ($(this).hasClass('booked')) {
-            //make a quick red flash in the cell
-            $(this).addClass('booked-blink');
-            var cell = $(this);
-            var go = false;
-            setTimeout(function() {
-              booked_flash(cell, go);
-            }, 100);
-          } else if ($(this).hasClass('selected')) {
-            $(this).removeClass('selected');
-            $(this).addClass('open');
-
-            var id = $(this).attr('id');
-            var arr = id.split('_');
-            var x = arr[0];
-            var y = arr[1];
-            $('#'+String(Number(x)-1)+'_'+y).removeClass('selected_right');
-            $('#'+x+'_'+String(Number(y)-1)).removeClass('selected_below');
-
-            //update_cost();
-          } else if ($(this).hasClass('open_hover') || $(this).hasClass('open')) {
-            $(this).removeClass('open_hover');
-            $(this).addClass('selected');
-            //we need to make the cell to the left have .selected_right and the cell above have .selected_below
-            var id = $(this).attr('id');
-            var arr = id.split('_');
-            var x = arr[0];
-            var y = arr[1];
-            $('#'+String(Number(x)-1)+'_'+y).addClass('selected_right');
-            $('#'+x+'_'+String(Number(y)-1)).addClass('selected_below');
-            
-            //call an update function to update the cost in the booking button
-            //update_cost();
-          }
-        });
-
-        $("td.open").hover(function (e) {
+        var week_dates = [];
+        $(document).on('click', '#show_week_button', function(e) {
             e.preventDefault();
-            $(this).removeClass('open');
-            $(this).addClass('open_hover');
-        }, 
-        function (e) {
-            e.preventDefault();
-            $(this).removeClass('open_hover');
-            $(this).addClass('open');
+            //display the timetable of the trainer for the week selected
+            if (show_timetable == false) {
+                $('#timetable_table').attr('style', '');
+                timetable = $('#timetable_table').DataTable({
+                    'ajax': {
+                        'url': '/timetable_display',
+                        'method': "POST",
+                        'data': {
+                            "user_id": '{{$user_id}}',
+                            "year": $('#timetable_year').val(),
+                            "month": $('#timetable_month').val(),
+                            "week": $('#timetable_week').val()
+                        },
+                        'headers': {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                    },
+                    'columns': [
+                        {data:"time", width:"16%"},
+                        {data:"mon", width:"12%"},
+                        {data:"tue", width:"12%"},
+                        {data:"wed", width:"12%"},
+                        {data:"thu", width:"12%"},
+                        {data:"fri", width:"12%"},
+                        {data:"sat", width:"12%"},
+                        {data:"sun", width:"12%"}
+                    ],
+                    'paging': false,
+                    'searching': false,
+                    'ordering': false,
+                    'initComplete': function(settings, json) {
+                        timetable_format(json);
+                    },
+                    'bInfo': false
+                });
+                show_timetable = true;
+            } else {
+                timetable.ajax.reload(timetable_format);
+            }
+
+            //we also want to know specifically what the dates are
+            $.ajax({
+                method: 'POST',
+                url: '/timetable_week_dates',
+                data: 'user_id={{$user_id}}&year='+$('#timetable_year').val()+'&month='+$('#timetable_month').val()+'&week='+$('#timetable_week').val(),
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(data) {
+                    data = JSON.parse(data);
+                    if (data['status'] == 'success') {
+                        week_dates = data['week_dates'];
+                    } else {
+                        swal('', 'There was an error. Please reload the page and try again.', 'error');
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(JSON.stringify(jqXHR));
+                    console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                }
+            });
+        });
+        //TODO: ACCESS = 0 MEANS ITS A CUSTOMER TIMETABLE, ACCESS = 1 MEANS THE TRAINER IS VIEWING IT (SHOW DIFFERENT INFO)
+
+        $(document).on("mouseenter", "#timetable_table tbody td", function() {
+            if (typeof this != 'undefined') {
+                if ($(this).hasClass('timetable_inactive')) {
+                    $(this).addClass('timetable_inactive_hover');
+                } else if ($(this).hasClass('timetable_active')) {
+                    $(this).addClass('timetable_active_hover');
+                } else if ($(this).hasClass('timetable_booked')) {
+                    $(this).addClass('timetable_booked_hover');
+                }
+                var col_index = timetable.cell(this).index().column+1;
+                var row_index = timetable.cell(this).index().row+1;
+                $('#timetable_table').find('th:nth-child('+col_index+')').addClass('timetable_day_hover');
+                $('#timetable_table').find('tr:nth-child('+row_index+')').children('td').first().addClass('timetable_time_hover');
+            }
         });
 
-        $(document).on('click', "#week_calendar tr td div.row div", function(e) {
-          e.preventDefault();
-          if ($(this).hasClass('week_hover') || $(this).hasClass('weeks_box')) {
-            $('.week_selected').removeClass('week_selected');
-            $(this).attr('class', 'col-lg-2 week_selected');
-
-            //call an update function to update the week in the timetable
-            //update_week();
-          }
+        $(document).on("mouseleave", "#timetable_table tbody td", function() {
+            if (typeof this != 'undefined') {
+                if ($(this).hasClass('timetable_inactive_hover')) {
+                    $(this).removeClass('timetable_inactive_hover');
+                } else if ($(this).hasClass('timetable_active_hover')) {
+                    $(this).removeClass('timetable_active_hover');
+                } else if ($(this).hasClass('timetable_booked_hover')) {
+                    $(this).removeClass('timetable_booked_hover');
+                }
+                var col_index = timetable.cell(this).index().column+1;
+                var row_index = timetable.cell(this).index().row+1;
+                $('#timetable_table').find('th:nth-child('+col_index+')').removeClass('timetable_day_hover');
+                $('#timetable_table').find('tr:nth-child('+row_index+')').children('td').first().removeClass('timetable_time_hover');
+            }
         });
 
-        $('div.weeks_box').hover(function (e) {
-            e.preventDefault();
-            $(this).removeClass('weeks_box');
-            $(this).addClass('week_hover');
-            console.log('xd');
-        }, 
-        function (e) {
-            e.preventDefault();
-            $(this).removeClass('week_hover');
-            $(this).addClass('weeks_box');
-            console.log('xb');
-        });
+        @if($access == 0)
+            //this is a client viewing the timetable, so allow them to make bookings
+            $(document).on('click', '#timetable_table tbody td', function(e) {
+                console.log('click');
+                e.preventDefault();
 
-        $(document).on('click', '#TODO', function(e) {
-
-        });
-
-        $(document).on('click')
+                if ($(this).hasClass('timetable_inactive')) {
+                    //flash the cell grey to show that the user has no actions
+                } else if ($(this).hasClass('timetable_booked')) {
+                    //flash the cell red to show that the time is booked
+                } else if ($(this).hasClass('timetable_active')) {
+                    //display the day and time, show location, show price, provide single or recurring choice (week range for recurring)
+                    var col_index = timetable.cell(this).index().column+1;
+                    var row_index = timetable.cell(this).index().row+1;
+                    var day = $('#timetable_table').find('th:nth-child('+col_index+')').html();
+                    var conversions = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                    var index = conversions.indexOf(day);
+                    if (index >= 0) {
+                        var date = week_dates[index];
+                        var time = $('#timetable_table').find('tr:nth-child('+row_index+')').children('td').first().html();
+                        $.ajax({
+                            method: 'POST',
+                            url: '/session_get_details',
+                            data: 'trainer_id={{$user_id}}&date='+date+'&time='+time,
+                            headers: {
+                                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                            },
+                            success: function(data) {
+                                data = JSON.parse(data);
+                                if (data['status'] == 'success') {
+                                    //remind the user of the session date
+                                    $('#session_info_daydesc').html(data['day']+' ('+data['date']+')');
+                                    //describe the session location
+                                    $('#session_location').attr('data-location-id', data['location'][0]);
+                                    $('#session_location').children('div').first().find('img').attr('src', data['location'][2]);
+                                    $('#session_location').children('div:nth-child(2)').html(data['location'][1]);
+                                    $('#session_location').children('div:nth-child(3)').html(data['location'][3]);
+                                    //set the activities
+                                    $('#session_activity_select').val('');
+                                    var activity_html = '';
+                                    var activity;
+                                    for (i in data['activities']) {
+                                        activity = data['activities'][i];
+                                        activity_html += "<option name='activity_"+activity[0]+"' data-price='"+activity[2]+"'>"+activity[1]+"</option>";
+                                    }
+                                    $('#session_activity_select').html(activity_html);
+                                    //open the modal
+                                    $('#session_info_modal').modal('show');
+                                } else {
+                                    swal('', 'There was an error. Please reload the page and try again.', 'error');
+                                }
+                            },
+                            error: function(jqXHR, textStatus, errorThrown) {
+                                console.log(JSON.stringify(jqXHR));
+                                console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                            }
+                        });
+                    } else {
+                        swal('', 'There was an error. Please reload the page and try again.', 'error');
+                    }
+                }
+            });
+        @elseif($access == 1)
+            //this is the trainer viewing the timetable, so give them admin tools
+        @endif
       });
 
       $(window).on('load', function () {

@@ -81,12 +81,6 @@ class AuthenticationController extends Controller
                         //send a verification email
                         $client = new PostmarkClient(env('POSTMARK_CLIENTKEY', ''));
 
-                        $sendResult = $client->sendEmail(
-                          "accounts@activebook.com.au",
-                          $email,
-                          "Welcome to your new Active Book account!",
-                          "Congratulations ".$fname." ".$lname." for making your first step towards your fitness and health dreams! Click on the link to verify your email address: ".env('APP_URL', 'http://localhost:8000')."/verify/".(string)$user_id."/".$token
-                        );
                         $sendResult = $client->sendEmailWithTemplate(
                             "accounts@activebook.com.au",
                             $email,

@@ -41,6 +41,11 @@ Route::post('/submit_user_profilepic', 'ProfileController@submit_user_profilepic
 Route::post('/get_user_info', 'ProfileController@get_user_info')->middleware('loggedin');
 Route::post('/submit_user_info', 'ProfileController@submit_user_info')->middleware('loggedin');
 Route::get('/verify_add/{user_id}/{token}', 'ProfileController@verify_add');
+Route::post('/timetable_get_months', 'ProfileController@timetable_get_months');
+Route::post('/timetable_get_weeks', 'ProfileController@timetable_get_weeks');
+Route::post('/timetable_display', 'ProfileController@timetable_display');
+Route::post('/timetable_week_dates', 'ProfileController@timetable_week_dates');
+Route::post('/session_get_details', 'ProfileController@session_get_details');
 
 Route::get('/search', function () {
 	return view('activebook_search');

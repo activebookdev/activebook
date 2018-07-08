@@ -97,7 +97,6 @@
         $(document).on('ready', function () {
 
             $(document).on('submit', '#login_form', function(e) {
-                console.log('xd');
                 e.preventDefault();
 
                 var message = 'Please fix the following and try again:';
