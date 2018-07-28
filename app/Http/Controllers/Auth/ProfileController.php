@@ -440,10 +440,10 @@ class ProfileController extends Controller
             //rule type 2: hours apply to specific date in rules_value, highest priority: '04/09/2018', '9-11,15-19'
             //NOTE THAT RULES THAT NO LONGER APPLY (DATE RANGE HAS PASSED) SHOULD BE SET TO INACTIVE TO AS NOT TO SLOW THE RULE SCAN PROCESS BELOW
         //payment_modifiers: modifiers_id, modifiers_userid, modifiers_type, modifiers_value, modifiers_rule (e.g: 1, 21, 1, '<10am', '+$10')
-            //modifiers_type 0: baserate of user for acitivity given in modifiers_value: '23' (activity_id), '$55'
-            //modifiers_type 1: global rate change of user for time given in modifiers_value: '<10am', '+$10'
-            //modifiers_type 2: global rate change for specific weekday(s): 'sat,sun', '+$5'
-            //modifiers_type 3: rate change for specific date: '04/09/2018', '+$15'
+            //modifiers_type 0: baserate of user for acitivity given in modifiers_value: '23' (activity_id), '55'
+            //modifiers_type 1: global rate change of user for time given in modifiers_value: '10am', '+10'
+            //modifiers_type 2: global rate change for specific weekday: 'sat', '+5'
+            //modifiers_type 3: rate change for specific date: '04/09/2018', '+15'
 
         if (check_input([$user_id, $year, $month, $week])) {
             //verify that the user is a trainer, verify that the dates given are valid (within 6 months), load the timetable of the trainer and return it in the data object
@@ -624,6 +624,7 @@ class ProfileController extends Controller
                 }
                 //now we want to make sure the trainer is actually working on this date/time, and then get the location and price
                 if (timetable_check_slot($trainer_id, $date, $time)) {
+                    $recurring_dates = timetable_get_recurring($trainer_id, $date, $time);
                     $day = date_to_weekday($date);
                     $day_conversions = ['mon' => 'Monday', 'tue' => 'Tuesday', 'wed' => 'Wednesday', 'thu' => 'Thursday', 'fri' => 'Friday', 'sat' => 'Saturday', 'sun' => 'Sunday'];
                     $day_long = '';
@@ -691,10 +692,27 @@ class ProfileController extends Controller
 
                     //now get the cost of this session for each possible activity type (default is the trainer's base cost for the type)
                     //TODO: CONSIDER IF A TRAINING LOCATION RESTRICTS THE TYPE OF ACTIVITY THE TRAINER CAN PROVIDE (e.g, gym vs park) (MAYBE VIA A NEW TABLE THAT SAVES TRAINERS REGISTERING TO A LOCATION AND SELECTING THE ACTIVITIES THEY CAN PERFORM THERE, THIS CAN ACT AS THE MAIN ACTIVITIES_TRAINERS TABLE)
-                    $activities = [[12, 'Cardio', 65], [5, 'Weights', 60]]; //TEMPORARY
+                    $activities = [[12, 'Cardio', 65], [5, 'Weights', 60]]; //TEMPORARY, GET COST AS BASERATE FOR ACTIVITY FROM PAYMENT MODIFIERS TABLE
 
-                    return json_encode(['status' => 'success', 'day' => $day_long, 'date' => $date, 'location' => $location, 'activities' => $activities]);
+                    //now work out the recurring options and the pricing changes for each one (e.g, 3 weeks recurring could add an extra $10 to the regular 3*(hourly price) if the third day has a special price rule on it, so then the rest of the weeks after that will also have the extra $10 because they include this 3rd day)
+                    $recurring_options = recurring_dates_options($trainer_id, $recurring_dates, $time);
+                    $recurring_options = [[1, 'Single', '0'], [2, 'Two Weeks', '+5'], [3, 'Three Weeks', '+10']]; //TEMPORARY
+
+                    return json_encode(['status' => 'success', 'day' => $day_long, 'date' => $date, 'location' => $location, 'activities' => $activities, 'recurring_dates' => $recurring_dates, 'recurring_options' => $recurring_options]);
                 }
+            }
+        }
+        return json_encode(['status' => 'error']);
+    }
+
+    public function activity_get_icon(Request $request) {
+        $activity_id = $request->input('activity_id');
+
+        if (isset($activity_id) && !empty($activity_id)) {
+            $activity_id = (int)$activity_id;
+            if (isset($activity_id) && !is_null($activity_id)) {
+                //TODO: look at the activities table in the DB to get the icon
+                return json_encode(['status' => 'success', 'icon' => "<i class='fas fa-dumbbell fa-2x'></i>"]);
             }
         }
         return json_encode(['status' => 'error']);

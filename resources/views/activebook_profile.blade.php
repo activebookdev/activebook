@@ -139,9 +139,11 @@
         background-color: #99ff99;
         border-right: 1px solid #e6e6e6;
         border-bottom: 1px solid #e6e6e6;
+        cursor:pointer;
     }
     td.timetable_active_hover {
         background-color: #4dff4d !important;
+        cursor:pointer;
     }
     td.timetable_booked {
         background-color: #ff9999;
@@ -161,12 +163,6 @@
     th.timetable_day_hover {
         background-color: #f2f2f2;
     }
-    #book_button {
-      background-color:#70db70;
-      border:2px solid #29a329;
-      height:100px;
-      width:100px;
-    }
     #profile_overlay{
       position: fixed; /* Sit on top of the page content */
       width: 80%; /* Full width (cover the whole page) */
@@ -178,6 +174,52 @@
       background-color: rgba(0,0,0,0.5); /* Black background with opacity */
       z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
       cursor: pointer; /* Add a pointer on hover */
+    }
+    .remove_session {
+        height: 25px;
+        width: 25px;
+        background-color: #ff1a1a;
+        border-radius: 50%;
+        display: inline-block;
+        cursor: pointer;
+    }
+    .remove_session i {
+        color: white;
+        margin-right: 6.5px;
+        margin-top: 6px;
+    }
+    div.sessioninfo {
+        border: 1px solid black;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom:20px;
+    }
+    div[name="sessioninfo_activity"] {
+        font-size:20px;
+        text-align:center;
+    }
+    div[name="sessioninfo_activity"] i {
+        margin-top:5px;
+    }
+    span[name="sessioninfo_time"] {
+        font-size:20px;
+    }
+    span[name="sessioninfo_dates"] {
+        font-size:15px;
+    }
+    span[name="sessioninfo_location_name"] {
+        font-size:20px;
+    }
+    span[name="sessioninfo_location_address"] {
+        font-size:15px;
+    }
+    div[name="sessioninfo_price"] {
+        font-size: 30px;
+        text-align: center;
+    }
+    div[name="sessioninfo_buttons"] {
+        padding: 0;
+        text-align: right;
     }
   </style>
 @endsection
@@ -371,7 +413,7 @@
           </div>
           <br>
           <!-- Experience Timeline -->
-          <div class="g-brd-around g-brd-gray-light-v4 g-pa-20 g-mb-40">
+          <div class="g-brd-around g-brd-gray-light-v4 g-pa-20 g-mb-20">
             <span style="font-size:25px;">Timetable</span>
             <!-- Panel Body -->
             <div class="card-block u-info-v1-1">
@@ -438,11 +480,22 @@
             <!-- End Panel Body -->
           </div>
           <!-- End Experience Timeline -->
-          <div style="text-align:center;">
-            <div id="book_button" style="margin: 0 auto; border-radius:10px;">
-              Book Now
+          <!-- Start Sessions Box -->
+          <div id="sessions_box" class="g-brd-around g-brd-gray-light-v4 g-pa-20 g-mb-40" style="display:none;">
+            <span style="font-size:25px;">Sessions</span>
+            <!-- Panel Body -->
+            <div class="card-block u-info-v1-1">
+                <div class="row sessionsummary" style="margin-top:10px;">
+                    <div class="col-lg-8 col-md-8 col-sm-8 col-xs-8" style="font-size:22px; text-align:right;">
+                        <b>Total Price:</b>&nbsp;&nbsp;<span id="total_price">$135</span>
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                        <button id="book_button" class="btn btn-success btn-labeled"><span class="btn-label" style="margin-right:10px;"><i class="fas fa-shopping-cart"></i></span>Book Sessions</button>
+                    </div>
+                </div>
             </div>
           </div>
+          <!-- End Sessions Box -->
         </div>
         <!-- End Profle Content -->
       </div>
@@ -459,24 +512,51 @@
                 </div>
                 <div id="session_info_body" class="modal-body">
                     <div id="session_location" class="row" data-location-id="0">
-                        <div class="col-lg-3 col-md-3 col-sm-3">
+                        <div class="col-lg-3 col-md-3 col-sm-3" style="text-align:center;">
                             <figure>
-                                <img class="img-fluid w-50" src="">
+                                <img class="img-fluid" src="" style="width:120px; border-radius:60px; border:1px solid #a6a6a6;">
                             </figure>
                         </div>
-                        <div class="col-lg-4 col-md-4 col-sm-4">
+                        <div class="col-lg-9 col-md-9 col-sm-9">
+                            <div class="row" style="font-size:22px; margin-top:25px; margin-bottom:5px;">
 
-                        </div>
-                        <div class="col-lg-5 col-md-5 col-sm-5">
+                            </div>
+                            <div class="row" style="font-size:18px;">
 
+                            </div>
                         </div>
                     </div>
-                    <select id="session_activity_select" style="font-size:20px; padding:3px; border-radius:3px;"></select>
-                    <br>
-                    <span id="session_activity_choice" style="font-size:20px;"></span>
+                    <div class="row" style="margin-top:30px; padding-left:30px; margin-bottom:30px;">
+                        <div class="col-lg-2 col-md-2 col-sm-2" style="font-size:22px; text-align:right; padding-top:3px;">
+                            <b>Activity:</b>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <select id="session_activity_select" style="font-size:22px; padding:4px; border-radius:4px; background-color:white;"></select>
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-2" style="font-size:22px; text-align:right; padding-top:3px;">
+                            <b>Type:</b>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <select id="session_type_select" style="font-size:22px; padding:4px; border-radius:4px; background-color:white;"></select>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top:30px; padding-left:30px; margin-bottom:30px;">
+                        <div class="col-lg-2 col-md-2 col-sm-2" style="font-size:22px; text-align:right; padding-top:3px;">
+                            <b>Price:</b>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <span id="session_price" style="font-size:30px;"></span>
+                        </div>
+                        <div class="col-lg-2 col-md-2 col-sm-2" style="font-size:22px; text-align:right; padding-top:3px;">
+                            <b>Date(s):</b>
+                        </div>
+                        <div class="col-lg-3 col-md-3 col-sm-3">
+                            <span id="session_dates" style="font-size:25px;"></span>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button id="session_add_submit" type="button" class="btn btn-primary">Add Session</button>
+                    <button id="session_add_submit" type="button" class="btn btn-primary" disabled>Add Session</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
@@ -742,6 +822,8 @@
 
         @if($access == 0)
             //this is a client viewing the timetable, so allow them to make bookings
+            var session_dates = [];
+            var session_info = []; //0 => day, 1 => date, 2 => time, 3 => location_id, 4 => location_name, 5 => location_address
             $(document).on('click', '#timetable_table tbody td', function(e) {
                 console.log('click');
                 e.preventDefault();
@@ -771,21 +853,38 @@
                                 data = JSON.parse(data);
                                 if (data['status'] == 'success') {
                                     //remind the user of the session date
-                                    $('#session_info_daydesc').html(data['day']+' ('+data['date']+')');
+                                    $('#session_info_daydesc').html(data['day']+' ('+data['date']+') at '+time);
                                     //describe the session location
                                     $('#session_location').attr('data-location-id', data['location'][0]);
                                     $('#session_location').children('div').first().find('img').attr('src', data['location'][2]);
-                                    $('#session_location').children('div:nth-child(2)').html(data['location'][1]);
-                                    $('#session_location').children('div:nth-child(3)').html(data['location'][3]);
+                                    $('#session_location').children('div:nth-child(2)').children('div').first().html('<b>'+data['location'][1]+'</b>');
+                                    $('#session_location').children('div:nth-child(2)').children('div:nth-child(2)').html(data['location'][3]);
                                     //set the activities
                                     $('#session_activity_select').val('');
-                                    var activity_html = '';
+                                    var activity_html = '<option disabled selected value>Activity</option>';
                                     var activity;
                                     for (i in data['activities']) {
                                         activity = data['activities'][i];
-                                        activity_html += "<option name='activity_"+activity[0]+"' data-price='"+activity[2]+"'>"+activity[1]+"</option>";
+                                        activity_html += "<option name='activity_"+activity[0]+"' value='activity_"+activity[0]+"' data-activity-id='"+activity[0]+"' data-price='"+activity[2]+"'>"+activity[1]+"</option>";
                                     }
                                     $('#session_activity_select').html(activity_html);
+                                    //set the activity type (single or recurring) options
+                                    $('#session_type_select').val('');
+                                    var type_html = '<option disabled selected value>Type</option>';
+                                    var type;
+                                    for (i in data['recurring_options']) {
+                                        type = data['recurring_options'][i];
+                                        type_html += "<option name='type_"+type[0]+"' value='type_"+type[0]+"' data-price-change='"+type[2]+"'>"+type[1]+"</option>";
+                                    }
+                                    $('#session_type_select').html(type_html);
+                                    //clear the price field because we havent selected and activity yet
+                                    $('#session_price').html('');
+                                    //set the add session button to disabled because we havent selected an activity yet
+                                    $('#session_add_submit').prop('disabled', true);
+                                    //put the possible session dates into JS storage for use later
+                                    session_dates = data['recurring_dates'];
+                                    //store the constant info into our JS array
+                                    session_info = [data['day'], data['date'], time, data['location'][0], data['location'][1], data['location'][3]];
                                     //open the modal
                                     $('#session_info_modal').modal('show');
                                 } else {
@@ -802,6 +901,158 @@
                     }
                 }
             });
+
+            var update_session_price = function() {
+                var price = $('#session_activity_select').find(":selected").data('price');
+                var type_choice = $('#session_type_select').find(":selected").val();
+                var price_change = $('#session_type_select').find('option[name="'+type_choice+'"]').data('price-change');
+                var price_change_int = 0;
+                if (price_change[0] == '+') {
+                    price_change_int = Number(price_change.substring(1));
+                } else if (price_change[0] == '-') {
+                    price_change_int = (-1)*Number(price_change.substring(1));
+                }
+                var final_price = Number(type_choice[5])*Number(price) + price_change_int;
+                $('#session_price').html('$'+final_price);
+                $('#session_add_submit').prop('disabled', false);
+
+                var num_weeks = Number(type_choice[5]);
+                var dates_html = '';
+                for (i in session_dates) {
+                    if (i == num_weeks) {
+                        break;
+                    }
+                    dates_html += session_dates[i]+'<br />';
+                }
+                $('#session_dates').html(dates_html);
+                console.log([num_weeks, session_dates, dates_html]);
+            }
+
+            $(document).on('change', '#session_activity_select', function() {
+                //update the session_price to match our choice (num*base-price + price-change)
+                if ($(this).find(":selected").val() != '' && $('#session_type_select').find(":selected").val() != '') {
+                    update_session_price();
+                }
+            });
+
+            $(document).on('change', '#session_type_select', function() {
+                //update the session_price to match our choice (num*base-price + price-change)
+                if ($(this).find(":selected").val() != '' && $('#session_activity_select').find(":selected").val() != '') {
+                    update_session_price();
+                }
+            });
+
+            var create_sessioninfo = function(activity_id, activity_name, activity_icon, time, dates, location_id, location_name, location_address, price) {
+                var time_num = Number(time[0]);
+                var time_side = time[1];
+                if (time[1] != 'a' && time[1] != 'p') {
+                    time_num = Number(time.substring(0,2));
+                    time_side = time[2];
+                }
+                var times_html = time+' - ';
+                if (time_num < 11) {
+                    times_html += (time_num+1)+time_side+'m';
+                } else if (time_num == 11) {
+                    if (time_side == 'a') {
+                        times_html += '12pm';
+                    } else {
+                        times_html += '12pm';
+                    }
+                } else {
+                    times_html += '1'+time_side+'m';
+                }
+
+                var dates_html = '';
+                for (i in dates) {
+                    dates_html += dates[i];
+                    if (i%2 == 0 && i < dates.length-1) {
+                        dates_html += ', ';
+                    } else if (i < dates.length-1) {
+                        dates_html += ',<br>';
+                    }
+                }
+
+                return '<div class="row sessioninfo"><div class="col-lg-2 col-md-2 col-sm-2 col-xs-2" name="sessioninfo_activity" data-activity-id="'+activity_id+'"><b>'+activity_name+'</b>'+activity_icon+'</div><div class="col-lg-3 col-md-3 col-sm-3 col-xs-3"><b><span name="sessioninfo_time">'+times_html+'</span></b><br><span name="sessioninfo_dates">'+dates_html+'</span></div><div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" name="sessioninfo_location" data-location-id="'+location_id+'"><b><span name="sessioninfo_location_name">'+location_name+'</span></b><br><span name="sessioninfo_location_address">'+location_address+'</span></div><div class="col-lg-2 col-md-2 col-sm-2 col-xs-2" name="sessioninfo_price">'+price+'</div><div class="col-lg-1 col-md-1 col-sm-1 col-xs-1" name="sessioninfo_buttons"><span name="remove_session" class="remove_session"><i class="fas fa-times fa-lg"></i></span></div></div>';
+            }
+
+            var sessions_updateprice = function() {
+                if ($('#sessions_box div div.sessioninfo').length > 0) {
+                    var total_price = 0;
+                    var price = "";
+                    $('#sessions_box div').find('div.sessioninfo').each(function() {
+                        price = $(this).find('div[name="sessioninfo_price"]').html();
+                        total_price += Number(price.substring(1));
+                    });
+                    $('#total_price').html('$'+total_price);
+                }
+            }
+
+            var sessions_clearmodal = function() {
+                $('#session_info_daydesc').html('');
+                $('#session_location').find('img').attr('src', '');
+                $('#session_location').find('div.row').html('');
+                $('#session_activity_select').html('<option disabled="" selected="" value="">Activity</option>');
+                $('#session_type_select').html('<option disabled="" selected="" value="">Type</option>');
+                $('#session_price').html('');
+                $('#session_dates').html('');
+            }
+
+            $(document).on('click', '#session_add_submit', function(e) {
+                e.preventDefault();
+                //put the session details in the sessions box (no need to verify yet because this is just for display)
+                //note: session_day = session_info[0];
+
+                var num_dates = Number($('#session_type_select').find(":selected").attr('name').substring(5));
+                var dates_array = [];
+                var i = 0;
+                while (i < num_dates && i < 8) {
+                    dates_array.push(session_dates[i].substring(0,6)+session_dates[i].substring(8,10));
+                    i++;
+                }
+
+                $.ajax({
+                    method: 'POST',
+                    url: '/activity_get_icon',
+                    data: 'activity_id='+$('#session_activity_select').find(":selected").data('activity-id'),
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(data) {
+                        data = JSON.parse(data);
+                        if (data['status'] == 'success') {
+                            var activity_icon = data['icon'];
+                            var html = create_sessioninfo($('#session_activity_select').find(":selected").data('activity-id'), $('#session_activity_select').find(":selected").html(), activity_icon, session_info[2], dates_array, session_info[3], session_info[4], session_info[5], $('#session_price').html());
+                            if ($('#sessions_box div div.sessioninfo').length > 0) {
+                                $('#sessions_box div').find('div.sessioninfo').last().after(html);
+                            } else {
+                                $('#sessions_box div').find('div.sessionsummary').before(html);
+                            }
+                            sessions_updateprice();
+                            sessions_clearmodal();
+                            $('#session_info_modal').modal('hide');
+                            $('#sessions_box').attr('style', '');
+                        } else {
+                            swal('', 'There was an error. Please reload the page and try again.', 'error');
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.log(JSON.stringify(jqXHR));
+                        console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                    }
+                });
+            });
+
+            $(document).on('click', 'span[name="remove_session"]', function(e) {
+                e.preventDefault();
+                //remove the session box
+                $(this).parent().parent().remove();
+                sessions_updateprice();
+                //if there are no sessions, hide the whole box
+                if ($('#sessions_box div div.sessioninfo').length == 0) {
+                    $('#sessions_box').attr('style', 'display:none;');
+                }
+            });
+
         @elseif($access == 1)
             //this is the trainer viewing the timetable, so give them admin tools
         @endif

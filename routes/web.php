@@ -46,6 +46,7 @@ Route::post('/timetable_get_weeks', 'ProfileController@timetable_get_weeks');
 Route::post('/timetable_display', 'ProfileController@timetable_display');
 Route::post('/timetable_week_dates', 'ProfileController@timetable_week_dates');
 Route::post('/session_get_details', 'ProfileController@session_get_details');
+Route::post('/activity_get_icon', 'ProfileController@activity_get_icon');
 
 Route::get('/search', function () {
 	return view('activebook_search');

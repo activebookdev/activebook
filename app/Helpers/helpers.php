@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Http\File;
 use Illuminate\Support\Facades\Storage;
 use mofodojodino\ProfanityFilter\Check;
-use DateTime;
 
 if (!function_exists('user_get_age')) {
     function user_get_age($dob) {
@@ -493,6 +492,17 @@ if (!function_exists('hours_rangetoarray')) {
     }
 }
 
+if (!function_exists('ab_in_array')) {
+    function ab_in_array($needle, $haystack) {
+        foreach ($haystack as $h) {
+            if ($needle == $h) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
 if (!function_exists('timetable_check_slot')) {
     function timetable_check_slot($trainer_id, $date, $time) {
         //check that the trainer exists and that they are working at the given day and time
@@ -519,11 +529,7 @@ if (!function_exists('timetable_check_slot')) {
                 if (!is_null($specific_rule)) {
                     //this will override any type 0 or 1 rules, so look at this only
                     $hours = hours_rangetoarray($specific_rule->rules_rule);
-                    if (in_array($time, $hours)) {
-                        return true;
-                    } else {
-                        return false;
-                    }
+                    return (array_search($time, $hours) >= 0);
                 }
 
                 $range_rules = DB::table('timetable_rules')
@@ -545,11 +551,7 @@ if (!function_exists('timetable_check_slot')) {
                                 if ($date_range[0] < $date && $date_range[1] > $date) {
                                     //our date is in the range also, so this rule applies
                                     $hours = hours_rangetoarray($rule->rules_rule);
-                                    if (in_array($time, $hours)) {
-                                        return true;
-                                    } else {
-                                        return false;
-                                    }
+                                    return (array_search($time, $hours) >= 0);
                                 }
                             }
                         }
@@ -569,11 +571,8 @@ if (!function_exists('timetable_check_slot')) {
                         if (count($days_arr) > 0 && in_array($date_day, $days_arr)) {
                             //this global rule applies to our day
                             $hours = hours_rangetoarray($rule->rules_rule);
-                            if (in_array($time, $hours)) {
-                                return true;
-                            } else {
-                                return false;
-                            }
+                            return true; //TEMPORARY (TODO: FIX THIS SHIT)
+                            //return in_array($time, $hours); TODO: FIGURE OUT THE PROBLEM WITH RETURNING THE IN_ARRAY FUNCTION (BROKEN AF)
                         }
                     }
                 }
@@ -583,10 +582,225 @@ if (!function_exists('timetable_check_slot')) {
     }
 }
 
+if (!function_exists('date_add_days')) {
+    function date_add_days($date, $num_days) {
+        if (isset($date) && !empty($date) && strlen($date) == 10 && count(explode('/', $date)) == 3 && isset($num_days) && is_int($num_days)) {
+            $date_arr = explode('/', $date);
+            $day = $date_arr[0];
+            if ($day[0] == '0') {
+                $day = $day[1];
+            }
+            $day = (int)$day;
+            $month = $date_arr[1];
+            if ($month[0] == '0') {
+                $month = $month[1];
+            }
+            $month = (int)$month;
+            $year = (int)$date_arr[2];
+            
+            //now add num_days days to the date, also incrementing the month and year when needed
+            $days_added = 0;
+            $day_count = (int)cal_days_in_month(CAL_GREGORIAN, $month, $year);
+            while ($days_added < $num_days) {
+                $day++;
+                $days_added++;
+                if ($day > $day_count) {
+                    //we need to shift month and possibly year
+                    $day = 1;
+                    $month++;
+                    if ($month > 12) {
+                        $month = 1;
+                        $year++;
+                    }
+                    $day_count = (int)cal_days_in_month(CAL_GREGORIAN, $month, $year);
+                }
+            }
+
+            //format our date before returning
+            if ($day <= 9) {
+                $day = '0'.(string)$day;
+            } else {
+                $day = (string)$day;
+            }
+            if ($month <= 9) {
+                $month = '0'.(string)$month;
+            } else {
+                $month = (string)$month;
+            }
+            $year = (string)$year;
+            return $day.'/'.$month.'/'.$year;
+        }
+        return false;
+    }
+}
+
+if (!function_exists('timetable_get_recurring')) {
+    function timetable_get_recurring($trainer_id, $date, $time) {
+        //this function assumes that the trainer exists and that they are working at the given day and time
+        if (isset($trainer_id) && !empty($trainer_id) && isset($date) && !empty($date) && isset($time) && !empty($time)) {
+            //put the time into 24hr time
+            $time = (int)time_12to24hr($time);
+            $date_day = date_to_weekday($date);
+            
+            //fill an array with the max possible recurring sessions for this date
+            $recurring = [];
+            for ($i = 0; $i < 8; $i++) {
+                $new_date = date_add_days($date, 7*$i);
+                if ($new_date != false) {
+                    $recurring[] = $new_date;
+                }
+            }
+
+            //restrict these dates to all be within 6 months from this month
+            $year = (string)date('Y');
+            $month = (int)date('n');
+            $allowable_monthsyears = [];
+            for ($i = 0; $i < 6; $i++) {
+                if ($month > 12) {
+                    //we need to move onto the next year
+                    $year = (int)$year;
+                    $year++;
+                    $year = (string)$year;
+                    $month = 1;
+                }
+                if ($month <= 9) {
+                    $str_month = '0'.(string)$month;
+                } else {
+                    $str_month = (string)$month;
+                }
+                $allowable_monthsyears[] = $str_month.'/'.$year;
+                $month++;
+            }
+
+            $recurring_restricted = [];
+            foreach ($recurring as $r) {
+                $month_year = substr($r, 3, 9);
+                if (in_array($month_year, $allowable_monthsyears)) {
+                    $recurring_restricted[] = $r;
+                } else {
+                    break; //once one of the dates goes over, we know the rest will 
+                }
+            }
+            $recurring = $recurring_restricted;
+
+            //restrict these dates to only those where the trainer is available
+            $recurring_restricted = [];
+            foreach ($recurring as $r) {
+                if (timetable_check_slot($trainer_id, $r, $time)) {
+                    $recurring_restricted[] = $r;
+                } else {
+                    break; //once one date is unavailable, we can't look onwards after it
+                }
+            }
+            $recurring = $recurring_restricted;
+            return $recurring;
+        }
+        return false;
+    }
+}
+
+if (!function_exists('small_integer_to_word')) {
+    function small_integer_to_word($number, $capitalise) {
+        $word = '';
+        if (!is_null($number) && is_int($number) && $number >= 0 && $number <= 10 && !is_null($capitalise) && is_bool($capitalise)) {
+            if ($capitalise == true) {
+                $conversion = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
+            } else {
+                $conversion = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+            }
+            $word = $conversion[$number];
+        }
+        return $word;
+    }
+}
+
+if (!function_exists('recurring_dates_options')) {
+    function recurring_dates_options($trainer_id, $recurring_dates, $time) {
+        $recurring_options = [];
+        //this function assumes the trainer exists, and is working at the given dates and times (e.g: [03/04/18, 10/04/18, 17/04/18, 24/04/18], 10am)
+        //turn this information into an array of information ([[1, 'Single' '0'], [2, 'Two Weeks', '+5'], [3, 'Three Weeks', '+5'], [4, 'Four Weeks', '-10']]) (if 2 has +5 and the third session has +0, then 3 has +5)
+        if (!is_null($trainer_id) && is_int($trainer_id) && !is_null($recurring_dates) && is_array($recurring_dates) && !is_null($time)) {
+            if (count($recurring_dates) > 0) {
+                $date_day = date_to_weekday($recurring_dates[0]); //every date falls on the same weekday
+                //temporarily store the recurring numbers and a modifier of 0, which will be worked on below
+                foreach ($recurring_dates as $num => $date) {
+                    $desc = 'Single';
+                    if ($num+1 > 1) {
+                        $desc = small_integer_to_word($num+1, true).' Weeks';
+                    }
+                    $recurring_options[] = [$num+1, $desc, 0]; //to get the date for any option, do recurring_dates[option[0]-1]
+                }
+
+                //find and apply the payment modifiers to the recurring dates
+                $payment_modifiers = DB::table('payment_modifiers')
+                                        ->where([
+                                            ['modifiers_userid', $trainer_id],
+                                            ['modifiers_type', '!=', 0] //these are baserates that are not needed here
+                                        ])
+                                        ->orderBy('modifiers_type', 'asc')
+                                        ->get();
+                if (!is_null($payment_modifiers) && count($payment_modifiers) > 0) {
+                    foreach ($payment_modifiers as $modifier) {
+                        if ($modifier->modifiers_type == 1 && $modifier->modifiers_value == $time) {
+                            //apply this rule to every option
+                            $amount = 0;
+                            if ($modifier->modifiers_rule[0] == '+') {
+                                $amount = (int)substr($modifier->modifiers_rule[0], 1);
+                            } else if ($modifier->modifiers_rule[0] == '-') {
+                                $amount = (-1)*(int)substr($modifier->modifiers_rule[0], 1);
+                            }
+                            foreach ($recurring_options as $option) {
+                                $option[2] += $amount;
+                            }
+                        } else if ($modifier->modifiers_type == 2 && $modifier->modifiers_value == $date_day) {
+                            //apply this rule to every option
+                            $amount = 0;
+                            if ($modifier->modifiers_rule[0] == '+') {
+                                $amount = (int)substr($modifier->modifiers_rule[0], 1);
+                            } else if ($modifier->modifiers_rule[0] == '-') {
+                                $amount = (-1)*(int)substr($modifier->modifiers_rule[0], 1);
+                            }
+                            foreach ($recurring_options as $option) {
+                                $option[2] += $amount;
+                            }
+                        } else if ($modifier->modifiers_type == 3 && in_array($modifier->modifiers_value, $recurring_dates)) {
+                            //apply this rule to every option >= given date
+                            $start_index = array_search($modifier->modifiers_value, $recurring_dates);
+                            $amount = 0;
+                            if ($modifier->modifiers_rule[0] == '+') {
+                                $amount = (int)substr($modifier->modifiers_rule[0], 1);
+                            } else if ($modifier->modifiers_rule[0] == '-') {
+                                $amount = (-1)*(int)substr($modifier->modifiers_rule[0], 1);
+                            }
+                            foreach ($recurring_options as $index => $option) {
+                                if ($index >= $start_index) {
+                                    $option[2] += $amount;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                //convert the recurring options info into the correct format
+                foreach ($recurring_options as $option) {
+                    if ($option[2] == 0) {
+                        $option[2] = (string)$option[2];
+                    } else if ($option[2] > 0) {
+                        $option[2] = '+'.(string)$option[2];
+                    } else {
+                        $option[2] = '-'.(string)$option[2];
+                    }
+                }
+            }
+        }
+        return $recurring_options;
+    }
+}
+
 if (!function_exists('location_get_pictureid')) {
     function location_get_pictureurl($location_id) {
         //return the picture_name of the user's current profile picture, or the default if none exists
-        $picture_url = asset('/images/default_profile.png'); //TODO: MAKE A DEFAULT LOCATION PICTURE
+        $picture_url = asset('/images/default_location.png');
         $location = DB::table('locations AS l')
                     ->join('user_pictures AS p', function($join) {
                         $join->on('p.pictures_userid', '=', 'l.locations_id')
