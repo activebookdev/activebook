@@ -764,5 +764,138 @@ class ProfileController extends Controller
         return json_encode(['status' => 'error']);
     }
 
+    public function get_trainer_info(Request $request) {
+        $user_id = $request->input('user_id');
+
+        if (isset($user_id) && !empty($user_id) && $request->session()->has('id') && $user_id == $request->session()->get('id')) {
+            $user = DB::table('users')
+                        ->where([
+                            ['users_id', $user_id],
+                            ['users_type', 1],
+                            ['users_active', 1]
+                        ])
+                        ->first();
+
+            if (!is_null($user)) {
+                $address_number = '';
+                if (isset($user->users_address_number) && !is_null($user->users_address_number)) {
+                    $address_number = $user->users_address_number;
+                }
+
+                $address_streetname = '';
+                if (isset($user->users_address_streetname) && !is_null($user->users_address_streetname)) {
+                    $address_streetname = $user->users_address_streetname;
+                }
+
+                $address_suburb = '';
+                if (isset($user->users_address_suburb) && !is_null($user->users_address_suburb)) {
+                    $address_suburb = $user->users_address_suburb;
+                }
+
+                $address_postcode = '';
+                if (isset($user->users_address_postcode) && !is_null($user->users_address_postcode)) {
+                    $address_postcode = $user->users_address_postcode;
+                }
+
+                $address_state = '';
+                if (isset($user->users_address_state) && !is_null($user->users_address_state)) {
+                    $address_state = $user->users_address_state;
+                }
+
+                $dob = '';
+                if (isset($user->users_dob) && !is_null($user->users_dob)) {
+                    $dob = $user->users_dob;
+                }
+
+                return json_encode(['status' => 'success', 'fname' => $user->users_fname, 'lname' => $user->users_lname, 'email' => $user->users_email, 'address_number' => $address_number, 'address_streetname' => $address_streetname, 'address_suburb' => $address_suburb, 'address_postcode' => $address_postcode, 'address_state' => $address_state, 'dob' => $dob]);
+            }
+        }
+        return json_encode(['status' => 'error']);
+    }
+
+    public function submit_trainer_info(Request $request) {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'dob' => 'required|string|min:10|max:10|date_format:d/m/Y'
+        ]);
+
+        if ($validator->fails()) {
+            return json_encode(['status' => 'error']);
+        }
+
+        $user_id = $request->input('user_id');
+        $dob = $request->input('dob');
+        $email = $request->input('email');
+        $address_number = $request->input('address_number');
+        $address_streetname = $request->input('address_streetname');
+        $address_suburb = $request->input('address_suburb');
+        $address_state = $request->input('address_state');
+        $address_postcode = $request->input('address_postcode');
+
+        if (check_input([$user_id, $dob, $email, $address_number, $address_streetname, $address_suburb, $address_state, $address_postcode]) && $request->session()->has('id') && $user_id == $request->session()->get('id')) {
+            $user = DB::table('users')
+                        ->where([
+                            ['users_id', $user_id],
+                            ['users_type', 1],
+                            ['users_active', 1]
+                        ])
+                        ->first();
+            if (!is_null($user)) {
+                //TODO: USE GOOGLE MAPS API TO CHECK THAT ADDRESS COMPONENTS FORM A REAL, VALID ADDRESS
+
+                //if dob or address are updated, mark this as true
+                $update_check = 0;
+                if ($dob != $user->users_dob || $address_number != $user->users_address_number || $address_streetname != $user->users_address_streetname || $address_suburb != $user->users_address_suburb || $address_state != $user->users_address_state || $address_postcode != $user->users_address_postcode) {
+                    $update_check = 1;
+                }
+
+                //update the user's info
+                DB::table('users')
+                    ->where('users_id', $user_id)
+                    ->update(['users_dob' => $dob, 'users_address_number' => $address_number, 'users_address_streetname' => $address_streetname, 'users_address_suburb' => $address_suburb, 'users_address_state' => $address_state, 'users_address_postcode' => $address_postcode]);
+ 
+                if ($email != $user->users_email) {
+                    //the user has changed their email, so we need to create a record of this, then verify it
+                    $email_check = DB::table('user_emails')
+                                ->select('emails_userid', 'emails_verified')
+                                ->where([
+                                    ['emails_email', $email],
+                                    ['emails_active', 1]
+                                ])
+                                ->first();
+                    if (!is_null($email_check)) {
+                        //this email is already registered to another account
+                        return json_encode(['status' => 'email_exists', 'extra' => $update_check]);
+                    } else {
+                        $token = generate_token(30);
+
+                        $email_auth = DB::table('user_emails')
+                                        ->insertGetId(['emails_userid' => $user_id, 'emails_email' => $email, 'emails_token' => $token, 'emails_verified' => 0, 'emails_active' => 0]); //this isn't the user's primary email until it is verified
+
+                        if (isset($email_auth) && !is_null($email_auth)) {
+                            //send a verification email
+                            $client = new PostmarkClient(env('POSTMARK_CLIENTKEY', ''));
+
+                            $sendResult = $client->sendEmailWithTemplate(
+                                "accounts@activebook.com.au",
+                                $email,
+                                7324181,
+                                [
+                                    "name" => $user->users_fname,
+                                    "verify_url" => env('APP_URL', 'http://localhost:8000')."/verify_add/".(string)$user_id."/".$token,
+                                    "support_email" => "support@activebook.com.au", //TODO: CREATE THIS EMAIL AND INTEGRATE INTO ADMIN DASHBOARD
+                                    "phone_number" => "0426884710"
+                                ]
+                            );
+                            //TODO: INTERPRET AND USE sendResult
+                        }
+                    }
+                }
+                return json_encode(['status' => 'success']);
+            }
+        }
+        return json_encode(['status' => 'error']);
+    }
+
     public function testcode(Request $request) {}
 }

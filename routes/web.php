@@ -49,6 +49,8 @@ Route::post('/session_get_details', 'ProfileController@session_get_details');
 Route::post('/activity_get_icon', 'ProfileController@activity_get_icon');
 Route::post('/get_user_socials', 'ProfileController@get_user_socials')->middleware('loggedin');
 Route::post('/submit_user_socials', 'ProfileController@submit_user_socials')->middleware('loggedin');
+Route::post('/get_trainer_info', 'ProfileController@get_trainer_info')->middleware('loggedin');
+Route::post('/submit_trainer_info', 'ProfileController@submit_trainer_info')->middleware('loggedin');
 
 Route::get('/search', function () {
 	return view('activebook_search');
