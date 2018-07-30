@@ -213,12 +213,51 @@ if (!function_exists('trainer_get_locations')) {
     }
 }
 
+if (!function_exists('socials_typetoname')) {
+    function socials_typetoname($type) {
+        $conversion = ['fab fa-facebook-f', 'fab fa-twitter', 'fab fa-instagram', 'fab fa-snapchat-ghost', 'fab fa-linkedin-in', 'fab fa-google-plus-g', 'fab fa-youtube', 'fab fa-tumblr', 'fab fa-whatsapp', 'fab fa-pinterest-p', 'fab fa-reddit-alien'];
+        if (!is_null($type) && is_int($type) && $type >= 0 && $type <= 10) {
+            return $conversion[$type];
+        }
+        return 'fas fa-user';
+    }
+}
+
 if (!function_exists('trainer_get_socials')) {
     function trainer_get_socials($user_id) {
-        $socials = [['name' => '', 'url' => '']];
-        //TODO: MAKE A TRAINER SOCIALS TABLE THAT STORES socials_name ('facebook', 'twitter', etc), socials_userid, socials_url
-        $socials = [['name' => 'fab fa-facebook-f', 'url' => 'https://www.facebook.com/ethan.mitchell.7946'], ['name' => 'fab fa-linkedin-in', 'url' => 'https://www.linkedin.com/in/ethan-mitchell-314a2a13a/']]; //TEMPORARY
-        return $socials;
+        $socials_arr = [];
+        if (!empty($user_id) && !is_null($user_id)) {
+            $socials = DB::table('user_socials')
+                    ->where('socials_userid', $user_id)
+                    ->get();
+            if (!is_null($socials) && count($socials) > 0) {
+                foreach ($socials as $s) {
+                    $socials_arr[] = ['type' => $s->socials_type, 'name' => socials_typetoname($s->socials_type), 'url' => $s->socials_url];
+                }
+            }
+        }
+        return $socials_arr;
+    }
+}
+
+if (!function_exists('trainer_update_social')) {
+    function trainer_update_social($user_id, $type, $url) {
+        if (isset($user_id) && !empty($user_id) && isset($type) && is_int($type) && $type >= 0 && $type <= 10) {
+            $social = DB::table('user_socials')
+                        ->where([
+                            ['socials_userid', $user_id],
+                            ['socials_type', $type]
+                        ])
+                        ->first();
+            if (!is_null($social)) {
+                DB::table('user_socials')
+                    ->where('socials_id', $social->socials_id)
+                    ->update(['socials_url' => $url]);
+            } else if ($url != '') {
+                DB::table('user_socials')
+                    ->insert(['socials_userid' => $user_id, 'socials_type' => $type, 'socials_url' => $url]);
+            }
+        }
     }
 }
 

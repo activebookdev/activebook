@@ -718,5 +718,51 @@ class ProfileController extends Controller
         return json_encode(['status' => 'error']);
     }
 
+    public function get_user_socials(Request $request) {
+        $user_id = $request->input('user_id');
+
+        if (isset($user_id) && !empty($user_id) && $request->session()->has('id') && $user_id == $request->session()->get('id')) {
+            $user = DB::table('users')
+                        ->where([
+                            ['users_id', $user_id],
+                            ['users_type', 1],
+                            ['users_active', 1]
+                        ])
+                        ->first();
+            if (!is_null($user)) {
+                $user_socials = trainer_get_socials($user_id);
+                $socials = [['facebook', 'fab fa-facebook-f'], ['twitter', 'fab fa-twitter'], ['instagram', 'fab fa-instagram'], ['snapchat', 'fab fa-snapchat-ghost'], ['linkedin', 'fab fa-linkedin-in'], ['google_plus', 'fab fa-google-plus-g'], ['youtube', 'fab fa-youtube'], ['tumblr', 'fab fa-tumblr'], ['whatsapp', 'fab fa-whatsapp'], ['pinterest', 'fab fa-pinterest-p'], ['reddit', 'fab fa-reddit-alien']];
+
+                return json_encode(['status' => 'success', 'user_socials' => $user_socials, 'socials' => $socials]);
+            }
+        }
+        return json_encode(['status' => 'error']);
+    }
+
+    public function submit_user_socials(Request $request) {
+        $user_id = $request->input('user_id');
+        $type = $request->input('type');
+        $url = $request->input('url');
+
+        if (isset($user_id) && !empty($user_id) && isset($type) && (int)$type >= 0 && (int)$type <= 10 && $request->session()->has('id') && $user_id == $request->session()->get('id')) {
+            $user = DB::table('users')
+                        ->where([
+                            ['users_id', $user_id],
+                            ['users_type', 1],
+                            ['users_active', 1]
+                        ])
+                        ->first();
+
+            if (!is_null($user)) {
+                if (!isset($url) || empty($url)) {
+                    $url = '';
+                }
+                trainer_update_social($user_id, (int)$type, $url);
+                return json_encode(['status' => 'success']);
+            }
+        }
+        return json_encode(['status' => 'error']);
+    }
+
     public function testcode(Request $request) {}
 }

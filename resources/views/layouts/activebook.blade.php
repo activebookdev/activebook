@@ -377,13 +377,13 @@
                     e.preventDefault();
                     var html = $(this).html();
                     $(this).html("<b>"+html+"</b>");
-                    //$(this).attr('style', 'font-size:18px; color:white; cursor:pointer;');
+                    $(this).attr('style', 'font-size:18px; color:white; cursor:pointer;');
                 },
                 mouseleave: function (e) {
                     e.preventDefault();
                     var html = $(this).html().substring(3, $(this).html().length - 4);
                     $(this).html(html);
-                    //$(this).attr('style', 'font-size:18px; color:white; cursor:pointer;');
+                    $(this).attr('style', 'font-size:18px; color:white; cursor:pointer;');
                 }
             }, "#login_button, #logout_button, #register_button");
 

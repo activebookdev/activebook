@@ -221,6 +221,70 @@
         padding: 0;
         text-align: right;
     }
+    .save_social {
+        height: 30px;
+        width: 30px;
+        background-color: #00b300;
+        border-radius: 50%;
+        display: inline-block;
+        cursor: pointer;
+        margin-top: 5px;
+    }
+    .save_social i {
+        color: white;
+        margin-right: 1px;
+        margin-top: 9px;
+    }
+    .social_icon {
+        height: 40px;
+        width: 40px;
+        border-radius: 50%;
+        display: inline-block;
+        cursor: pointer;
+    }
+    .social_icon i {
+        color: white;
+        margin-top: 7px;
+    }
+    span[name="facebook_icon"] {
+        background-color: #3B5998;
+    }
+    span[name="twitter_icon"] {
+        background-color: #1DA1F2;
+    }
+    span[name="instagram_icon"] {
+        background-color: #262626;
+    }
+    span[name="snapchat_icon"] {
+        background-color: #FFFC00;
+    }
+    span[name="linkedin_icon"] {
+        background-color: #0077B5;
+    }
+    span[name="google_plus_icon"] {
+        background-color: #DB4437;
+    }
+    span[name="youtube_icon"] {
+        background-color: #ff0000;
+    }
+    span[name="tumblr_icon"] {
+        background-color: #35465C;
+    }
+    span[name="whatsapp_icon"] {
+        background-color: #1ebea5;
+    }
+    span[name="pinterest_icon"] {
+        background-color: #BD081C;
+    }
+    span[name="reddit_icon"] {
+        background-color: rgb(255, 69, 0);
+    }
+    div.socials_row {
+        margin-bottom: 20px;
+    }
+    input.social_url {
+        margin-top: 5px;
+    }
   </style>
 @endsection
 
@@ -377,7 +441,7 @@
           </div>
           <!-- End User Block -->
 
-          <div class="card-block u-info-v1-1 g-height-300 g-pa-0">
+          <div class="card-block g-height-300 g-pa-0">
             <div class="row">
               <div class="col-lg-6">
                   <br>
@@ -412,6 +476,54 @@
             </div>
           </div>
           <br>
+
+            @if($access == 1)
+                <div class="g-brd-around g-brd-gray-light-v4 g-pa-20 g-mb-20">
+                    <header class="d-flex g-mb-30">
+                        <i class="fa fa-cog fa-3x align-self-center g-mr-20"></i>
+                        <div class="g-line-height-1 g-mt-7 g-ml-5">
+                            <span style="font-size:25px;">Options</span>
+                        </div>
+                    </header>
+                    <div class="card-block" style="padding-top:0px;">
+                        <div class="row">
+                            <div class="col-lg-4 col-md-4 col-sm-4">
+                                <button id="edit_profilepic_button" class="btn btn-default btn-labeled"><span class="btn-label"><i class="far fa-user-circle"></i></span>&nbsp;&nbsp;Edit Picture</button>
+                            </div>
+                            <div class="col-lg-4 col-md-4 col-sm-4">
+                                <button id="edit_bio_button" class="btn btn-default btn-labeled"><span class="btn-label"><i class="fa fa-align-justify"></i></span>&nbsp;&nbsp;Edit Bio</button>
+                            </div>
+                            <div class="col-lg-4 col-md-4 col-sm-4">
+                                <button id="edit_info_button" class="btn btn-default btn-labeled"><span class="btn-label"><i class="fa fa-info"></i></span>&nbsp;&nbsp;Edit Personal Details</button>
+                            </div>
+                        </div>
+                        <hr style="margin-top:15px; margin-bottom:15px;">
+                        <div class="row" style="margin-bottom:10px;">
+                            <div class="col-lg-4 col-md-4 col-sm-4">
+                                <button id="edit_socials_button" class="btn btn-default btn-labeled"><span class="btn-label"><i class="fas fa-users"></i></span>&nbsp;&nbsp;Edit Socials</button>
+                            </div>
+                            <div class="col-lg-4 col-md-4 col-sm-4">
+                                <button id="edit_timetable_button" class="btn btn-default btn-labeled"><span class="btn-label"><i class="fa fa-calendar"></i></span>&nbsp;&nbsp;Edit Timetable</button>
+                            </div>
+                            <div class="col-lg-4 col-md-4 col-sm-4">
+                                <button id="edit_activities_button" class="btn btn-default btn-labeled"><span class="btn-label"><i class="fas fa-dumbbell"></i></span>&nbsp;&nbsp;Edit Activities</button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-4 col-md-4 col-sm-4">
+                                <button id="edit_pricing_button" class="btn btn-default btn-labeled"><span class="btn-label"><i class="fas fa-file-invoice-dollar"></i></span>&nbsp;&nbsp;Edit Pricing</button>
+                            </div>
+                            <div class="col-lg-4 col-md-4 col-sm-4">
+                                <button id="edit_payinfo_button" class="btn btn-default btn-labeled"><span class="btn-label"><i class="fas fa-dollar-sign"></i></span>&nbsp;&nbsp;Edit Payment Details</button>
+                            </div>
+                            <div class="col-lg-4 col-md-4 col-sm-4">
+                                <button id="edit_locations_button" class="btn btn-default btn-labeled"><span class="btn-label"><i class="fas fa-map-marker-alt"></i></span>&nbsp;&nbsp;Edit Locations</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
           <!-- Experience Timeline -->
           <div class="g-brd-around g-brd-gray-light-v4 g-pa-20 g-mb-20">
             <span style="font-size:25px;">Timetable</span>
@@ -484,12 +596,12 @@
           <div id="sessions_box" class="g-brd-around g-brd-gray-light-v4 g-pa-20 g-mb-40" style="display:none;">
             <span style="font-size:25px;">Sessions</span>
             <!-- Panel Body -->
-            <div class="card-block u-info-v1-1">
+            <div class="card-block">
                 <div class="row sessionsummary" style="margin-top:10px;">
                     <div class="col-lg-8 col-md-8 col-sm-8 col-xs-8" style="font-size:22px; text-align:right;">
                         <b>Total Price:</b>&nbsp;&nbsp;<span id="total_price">$135</span>
                     </div>
-                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4" style="text-align:center;">
                         <button id="book_button" class="btn btn-success btn-labeled"><span class="btn-label" style="margin-right:10px;"><i class="fas fa-shopping-cart"></i></span>Book Sessions</button>
                     </div>
                 </div>
@@ -562,8 +674,42 @@
             </div>
         </div>
     </div>
+
+    <div id="book_modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Book Sessions</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div id="book_body" class="modal-body">
+                    Booking and payment not yet implemented.
+                </div>
+                <div class="modal-footer">
+                    <button id="book_submit" type="button" class="btn btn-primary">Book</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @elseif($access == 1)
 
+    <div id="socials_modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Social Media Accounts</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div id="socials_body" class="modal-body">
+                    <!-- AJAX LOAD SOCIALS HERE -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 @endif
 @endsection
@@ -1053,8 +1199,99 @@
                 }
             });
 
+            $(document).on('click', '#book_button', function(e) {
+                e.preventDefault();
+                //TODO: get the session info from the info boxes in the page, and verify in the backend
+                $('#book_modal').modal('show');
+            });
+
         @elseif($access == 1)
-            //this is the trainer viewing the timetable, so give them admin tools
+            var open_social = function(name) {
+                $('#socials_'+name).children('div:nth-child(2)').attr('style', '');
+            }
+
+            $(document).on('click', '#edit_socials_button', function(e) {
+                //get the user's social media accounts and load them into the modal
+                $.ajax({
+                    method: 'POST',
+                    url: '/get_user_socials',
+                    data: 'user_id={{$user_id}}',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(data) {
+                        data = JSON.parse(data);
+                        if (data['status'] == 'success') {
+                            var user_socials = data['user_socials']; //the social media accounts of the user (each is ['type' => '', 'name' => '', 'url' => ''])
+                            var socials = data['socials']; //all possible socials on activebook, (each is ['name', 'icon'], with type given by index)
+                            var html = '';
+                            for (type in socials) {
+                                var social = socials[type];
+                                html += '<div id="socials_'+social[0]+'" class="row socials_row"><div class="col-lg-2 col-md-2 col-sm-2 col-xs-2" style="text-align:center;"><span name="'+social[0]+'_icon" class="social_icon"><i class="'+social[1]+' fa-2x"></i></span></div><div class="col-lg-8 col-md-8 col-sm-8 col-xs-8" style="display:none;"><input id="'+social[0]+'_url" type="text" class="form-control social_url"></div><div class="col-lg-1 col-md-1 col-sm-1 col-xs-1" style="display:none; text-align:center;"><span name="save_social" class="save_social" data-name="'+social[0]+'" data-type="'+type+'"><i class="fas fa-check fa-lg"></i></span></div></div>';
+                            }
+                            $('#socials_body').html(html);
+                            for (i in user_socials) {
+                                var social = user_socials[i];
+                                $('#'+socials[social['type']][0]+'_url').val(social['url']); //add the url
+                                open_social(socials[social['type']][0]); //open the social
+                            }
+                            $('#socials_modal').modal('show');
+                        } else {
+                            swal('', 'There was an error. Please reload the page and try again.', 'error');
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.log(JSON.stringify(jqXHR));
+                        console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                    }
+                });
+            });
+
+            $(document).on('click', 'span.social_icon', function(e) {
+                e.preventDefault();
+                var style = $(this).parent().next('div').attr('style');
+                if (style == '') {
+                    //hide the url
+                    $(this).parent().next('div').attr('style', 'display:none;');
+                    //$(this).parent().next('div').next('div').attr('style', 'display:none; text-align:center;');
+                } else {
+                    //show the url
+                    $(this).parent().next('div').attr('style', '');
+                    //$(this).parent().next('div').next('div').attr('style', 'text-align:center;');
+                }
+            });
+
+            $('#socials_body').on('change keyup paste', 'div.socials_row div:nth-child(2) input.social_url', function(e) {
+                $(this).parent().next('div').attr('style', 'text-align:center;');
+            });
+
+            $(document).on('click', 'span[name="save_social"]', function(e) {
+                e.preventDefault();
+                var name = $(this).data('name');
+                var type = $(this).data('type');
+                var span = $(this);
+                $.ajax({
+                    method: 'POST',
+                    url: '/submit_user_socials',
+                    data: 'user_id={{$user_id}}&type='+type+'&url='+$('#'+name+'_url').val(),
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(data) {
+                        data = JSON.parse(data);
+                        if (data['status'] == 'success') {
+                            span.parent().attr('style', 'display:none; text-align:center;');
+                        } else {
+                            swal('', 'There was an error. Please reload the page and try again.', 'error');
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.log(JSON.stringify(jqXHR));
+                        console.log("AJAX error: " + textStatus + ' : ' + errorThrown);
+                    }
+                });
+            });
+
         @endif
       });
 
